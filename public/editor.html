@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Team Wiki — Create or edit an article" />
+    <title>Team Wiki — Editor</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+        /* Editor-specific layout */
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            padding-bottom: 60px;
+            /* space for status bar */
+        }
+
+        @media (max-width: 900px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .editor-pane {
+            min-height: 500px;
+        }
+
+        .preview-pane {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .preview-pane h1,
+        .preview-pane h2,
+        .preview-pane h3 {
+            margin: 1em 0 0.4em;
+        }
+
+        .preview-pane p {
+            margin-bottom: 0.8em;
+            color: var(--text-secondary);
+        }
+
+        .preview-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== Navbar ========== -->
+    <nav class="navbar">
+        <div class="navbar__inner">
+            <a href="/" class="navbar__brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                Team Wiki
+            </a>
+            <ul class="navbar__links">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/editor" class="active">Editor</a></li>
+            </ul>
+            <div class="navbar__user" id="auth-area"></div>
+        </div>
+    </nav>
+
+    <!-- ========== Main Content ========== -->
+    <main class="container">
+        <div class="page-header">
+            <h1 class="page-header__title" id="editor-page-title">New Article</h1>
+            <button class="btn btn--primary" id="editor-save">💾 Save Article</button>
+        </div>
+
+        <form id="editor-form" onsubmit="return false">
+            <div class="form-group">
+                <label for="editor-title">Title</label>
+                <input type="text" class="input" id="editor-title" placeholder="Article title" required />
+            </div>
+
+            <div class="form-group">
+                <label for="editor-tags">Tags (comma-separated)</label>
+                <input type="text" class="input" id="editor-tags" placeholder="e.g. javascript, tutorial, guide" />
+            </div>
+
+            <div class="editor-layout">
+                <div class="editor-pane">
+                    <div class="preview-label">Markdown</div>
+                    <textarea class="textarea" id="editor-content"
+                        placeholder="Write your article in Markdown…"></textarea>
+                </div>
+                <div>
+                    <div class="preview-label">Preview</div>
+                    <div class="preview-pane article-content" id="editor-preview">
+                        <p style="color:var(--text-muted)">Start typing to see preview…</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <!-- Status Bar -->
+    <div class="status-bar" id="status-bar">
+        <span class="status-bar__dot status-bar__dot--saved"></span>Ready
+    </div>
+
+    <!-- ========== Auth Modal ========== -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal">
+            <div id="login-form">
+                <h2 class="modal__title">Login</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" class="input" id="login-username" placeholder="Enter username" />
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" class="input" id="login-password" placeholder="Enter password" />
+                </div>
+                <button class="btn btn--primary" id="login-submit" style="width:100%">Login</button>
+                <p class="mt-2 text-center" style="font-size:0.85rem;color:var(--text-muted)">
+                    Don't have an account? <a href="#" id="switch-to-register">Register</a>
+                </p>
+            </div>
+            <div id="register-form" class="hidden">
+                <h2 class="modal__title">Create Account</h2>
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" class="input" id="reg-username" placeholder="Choose username" />
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" class="input" id="reg-password"
+                        placeholder="Choose password (min 6 chars)" />
+                </div>
+                <div class="form-group">
+                    <label for="reg-role">Role</label>
+                    <select class="input" id="reg-role">
+                        <option value="editor">Editor</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+                <button class="btn btn--primary" id="register-submit" style="width:100%">Register</button>
+                <p class="mt-2 text-center" style="font-size:0.85rem;color:var(--text-muted)">
+                    Already have an account? <a href="#" id="switch-to-login">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Scripts ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.0/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@14.1.0/marked.min.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

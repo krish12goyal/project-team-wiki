@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Team Wiki — Version history" />
+    <title>Team Wiki — History</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+
+    <!-- ========== Navbar ========== -->
+    <nav class="navbar">
+        <div class="navbar__inner">
+            <a href="/" class="navbar__brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                Team Wiki
+            </a>
+            <ul class="navbar__links">
+                <li><a href="/">Dashboard</a></li>
+                <li><a href="/editor">+ New Article</a></li>
+            </ul>
+            <div class="navbar__user" id="auth-area"></div>
+        </div>
+    </nav>
+
+    <!-- ========== Main Content ========== -->
+    <main class="container" style="padding-top:32px; padding-bottom:48px;">
+        <div class="page-header">
+            <h1 class="page-header__title" id="history-title">Version History</h1>
+            <a href="javascript:history.back()" class="btn btn--secondary btn--sm">← Back</a>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline" id="history-timeline">
+            <div class="skeleton" style="height:60px;margin-bottom:16px"></div>
+            <div class="skeleton" style="height:60px;margin-bottom:16px"></div>
+            <div class="skeleton" style="height:60px"></div>
+        </div>
+    </main>
+
+    <!-- ========== Auth Modal ========== -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal">
+            <div id="login-form">
+                <h2 class="modal__title">Login</h2>
+                <div class="form-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" class="input" id="login-username" placeholder="Enter username" />
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" class="input" id="login-password" placeholder="Enter password" />
+                </div>
+                <button class="btn btn--primary" id="login-submit" style="width:100%">Login</button>
+                <p class="mt-2 text-center" style="font-size:0.85rem;color:var(--text-muted)">
+                    Don't have an account? <a href="#" id="switch-to-register">Register</a>
+                </p>
+            </div>
+            <div id="register-form" class="hidden">
+                <h2 class="modal__title">Create Account</h2>
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" class="input" id="reg-username" placeholder="Choose username" />
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" class="input" id="reg-password"
+                        placeholder="Choose password (min 6 chars)" />
+                </div>
+                <div class="form-group">
+                    <label for="reg-role">Role</label>
+                    <select class="input" id="reg-role">
+                        <option value="editor">Editor</option>
+                        <option value="viewer">Viewer</option>
+                    </select>
+                </div>
+                <button class="btn btn--primary" id="register-submit" style="width:100%">Register</button>
+                <p class="mt-2 text-center" style="font-size:0.85rem;color:var(--text-muted)">
+                    Already have an account? <a href="#" id="switch-to-login">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Scripts ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.0/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@14.1.0/marked.min.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
