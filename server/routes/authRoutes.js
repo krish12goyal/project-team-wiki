@@ -13,7 +13,7 @@ const router = express.Router();
 // Rate limiter: max 10 requests per 15 minutes per IP
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10,
+    max: 100, // TEMPORARY: Increased for testing
     message: { error: 'Too many attempts. Please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,

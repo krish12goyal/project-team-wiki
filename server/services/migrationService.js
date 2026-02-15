@@ -10,6 +10,7 @@ async function migrateArticleOwners() {
     logger.info('Starting article owner migration...');
 
     // 1. Find or create a system admin user for orphans
+    // Create system user automatically if missing.
     let systemUser = await User.findOne({ username: 'system_admin' });
     if (!systemUser) {
         systemUser = await User.create({

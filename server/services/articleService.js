@@ -165,12 +165,13 @@ async function updateArticle(id, data, user) {
     const article = await Article.findById(id);
     if (!article) return null;
 
-    // Check permissions BEFORE any modification
+    // 1. Check permissions BEFORE any modification
     checkPermission(article, user, 'editor');
 
     const oldSlug = article.slug;
 
-    // Update metadata fields
+    // 2. Update metadata fields (Protect owner/sharedWith)
+    // Explicitly ignore 'owner' and 'sharedWith' from input data
     if (data.title) {
         article.title = data.title;
         // Re-derive slug if title changed
@@ -187,14 +188,16 @@ async function updateArticle(id, data, user) {
     }
     if (data.tags !== undefined) article.tags = data.tags;
 
+    // 3. Save to MongoDB
     await article.save();
 
-    // Write updated content
+    // 4. Write updated content to file system
     if (data.content !== undefined) {
         await fileService.writeArticle(article.slug, data.content);
     }
 
-    // Auto-commit with ACTUAL user attribution
+    // 5. Auto-commit with ACTUAL user attribution
+    // This happens LAST. If it fails, we log and retry/ignore, but DB/File are already updated.
     const authorName = user.username || 'anonymous';
     await safeAutoCommit(`[${authorName}] Updated article: ${article.title}`);
 
@@ -243,14 +246,18 @@ async function searchArticles(query, user) {
     if (!user) return [];
 
     const baseQuery = {
-        $or: [
-            { owner: user.id },
-            { 'sharedWith.user': user.id }
+        $and: [
+            {
+                $or: [
+                    { owner: user.id },
+                    { 'sharedWith.user': user.id }
+                ]
+            }
         ]
     };
 
     if (!query || !query.trim()) {
-        return getAllArticles(user);
+        return getAllArticles(user); // Reuse getAllArticles which has similar logic or just return proper list
     }
 
     // Combine access check with text search
