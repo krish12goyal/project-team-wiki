@@ -11,6 +11,20 @@ const gitService = require('./gitService');
 const logger = require('../utils/logger');
 
 /**
+ * Helper: Safely run autoCommit without blocking/crashing the main flow.
+ * @param {string} message
+ */
+async function safeAutoCommit(message) {
+    try {
+        await gitService.autoCommit(message);
+    } catch (err) {
+        logger.error(`Auto-commit failed for: "${message}"`, { error: err.message });
+        // We do not throw here to avoid failing the HTTP request 
+        // if the DB/File write was successful.
+    }
+}
+
+/**
  * Create a new article.
  * @param {Object} data - { title, content, tags, author, slug? }
  * @returns {Promise<Object>} Created article with content
@@ -31,7 +45,8 @@ async function createArticle(data) {
     await fileService.writeArticle(slug, data.content || '');
 
     // Auto-commit to Git
-    gitService.autoCommit(`Article created: ${data.title}`);
+    const authorName = data.author || 'system';
+    await safeAutoCommit(`[${authorName}] Created article: ${data.title}`);
 
     logger.info(`Article created: ${slug}`);
     return { ...article.toObject(), content: data.content || '' };
@@ -72,7 +87,7 @@ async function getArticleById(id) {
 /**
  * Update an existing article.
  * @param {string} id - MongoDB ObjectId
- * @param {Object} data - Fields to update { title?, content?, tags? }
+ * @param {Object} data - Fields to update { title?, content?, tags?, author? }
  * @returns {Promise<Object|null>}
  */
 async function updateArticle(id, data) {
@@ -106,7 +121,11 @@ async function updateArticle(id, data) {
     }
 
     // Auto-commit
-    gitService.autoCommit(`Article updated: ${article.title}`);
+    // We expect the controller to pass the current user in data.author if available,
+    // otherwise we use the article's original author or 'anonymous'.
+    // Typically updates should have a user associated.
+    const editor = data.author || 'anonymous';
+    await safeAutoCommit(`[${editor}] Updated article: ${article.title}`);
 
     logger.info(`Article updated: ${article.slug}`);
     return { ...article.toObject(), content: data.content };
@@ -129,7 +148,7 @@ async function deleteArticle(id) {
     }
 
     // Auto-commit
-    gitService.autoCommit(`Article deleted: ${article.title}`);
+    await safeAutoCommit(`[system] Deleted article: ${article.title}`);
 
     logger.info(`Article deleted: ${article.slug}`);
     return article;
@@ -178,13 +197,18 @@ async function restoreArticle(id, commitHash) {
     const filePath = `articles/${article.slug}.md`;
 
     // Restore the file content from the specified commit
-    gitService.gitRestore(commitHash, filePath);
+    try {
+        await gitService.gitRestore(commitHash, filePath);
+    } catch (err) {
+        logger.error(`Git restore failed: ${err.message}`);
+        throw err; // Propagate error for restore as it's the main action
+    }
 
     // Read the restored content
     const content = await fileService.readArticle(article.slug);
 
     // Auto-commit the restoration
-    gitService.autoCommit(`Article restored: ${article.title} to commit ${commitHash.substring(0, 7)}`);
+    await safeAutoCommit(`[system] Restored article: ${article.title} to commit ${commitHash.substring(0, 7)}`);
 
     logger.info(`Article restored: ${article.slug} to ${commitHash.substring(0, 7)}`);
     return { ...article, content };

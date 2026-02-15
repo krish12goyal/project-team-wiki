@@ -66,7 +66,8 @@ async function updateArticle(req, res, next) {
         }
 
         const { title, content, tags } = req.body;
-        const article = await articleService.updateArticle(req.params.id, { title, content, tags });
+        const author = req.user ? req.user.username : 'anonymous';
+        const article = await articleService.updateArticle(req.params.id, { title, content, tags, author });
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
     } catch (err) {
