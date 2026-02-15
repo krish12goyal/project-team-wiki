@@ -27,12 +27,37 @@ const articleSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    // Author username
+    // Author username (Legacy - kept for git history/display)
     author: {
       type: String,
       required: [true, 'Author is required'],
       trim: true,
     },
+    // Owner of the article (User ID)
+    owner: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      // required: true, // TODO: Enable after migration
+    },
+    // List of users with shared access
+    sharedWith: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        permission: {
+          type: String,
+          enum: ['viewer', 'editor'],
+          required: true,
+        },
+        addedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     // Automatically manage createdAt and updatedAt
@@ -42,5 +67,8 @@ const articleSchema = new mongoose.Schema(
 
 // Full-text search index on title and tags
 articleSchema.index({ title: 'text', tags: 'text' });
+// Index for permission checks
+articleSchema.index({ 'sharedWith.user': 1 });
+articleSchema.index({ owner: 1 });
 
 module.exports = mongoose.model('Article', articleSchema);

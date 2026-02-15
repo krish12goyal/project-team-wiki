@@ -25,13 +25,16 @@ const updateValidation = [
 // --- Public routes (read-only) ---
 
 // GET /api/articles — List all articles
-router.get('/', articleController.getAllArticles);
+router.get('/', authenticate, articleController.getAllArticles);
 
 // GET /api/articles/:id — Get single article
-router.get('/:id', articleController.getArticle);
+router.get('/:id', authenticate, articleController.getArticle);
 
 // GET /api/articles/:id/history — Version history
-router.get('/:id/history', articleController.getHistory);
+router.get('/:id/history', authenticate, articleController.getHistory);
+
+// GET /api/search — Search articles
+router.get('/search', authenticate, articleController.searchArticles);
 
 // --- Protected routes (require authentication + editor role) ---
 
@@ -46,5 +49,11 @@ router.delete('/:id', authenticate, authorize('editor'), articleController.delet
 
 // POST /api/articles/:id/restore — Restore version
 router.post('/:id/restore', authenticate, authorize('editor'), articleController.restoreVersion);
+
+// POST /api/articles/:id/share — Share article (Owner only - checked in service)
+router.post('/:id/share', authenticate, articleController.shareArticle);
+
+// DELETE /api/articles/:id/share/:userId — Remove access (Owner only)
+router.delete('/:id/share/:userId', authenticate, articleController.removeAccess);
 
 module.exports = router;

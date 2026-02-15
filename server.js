@@ -89,13 +89,19 @@ async function start() {
         await mongoose.connect(process.env.MONGODB_URI);
         logger.info('Connected to MongoDB');
 
-        // Ensure text indexes are created on startup
-        const Article = require('./server/models/Article');
-        await Article.ensureIndexes();
-        logger.info('MongoDB indexes ensured');
+        // Run migrations
+        const { migrateArticleOwners } = require('./server/services/migrationService');
+        migrateArticleOwners().catch(err => logger.error('Migration failed:', err));
 
         // Start listening
         app.listen(PORT, () => {
+            // Ensure text indexes are created on startup
+            const Article = require('./server/models/Article');
+            Article.ensureIndexes().then(() => {
+                logger.info('MongoDB indexes ensured');
+            }).catch(err => {
+                logger.error('Failed to ensure MongoDB indexes:', err);
+            });
             logger.info(`Server running on http://localhost:${PORT}`);
         });
     } catch (err) {

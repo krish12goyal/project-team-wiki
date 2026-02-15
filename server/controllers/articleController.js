@@ -18,9 +18,8 @@ async function createArticle(req, res, next) {
         }
 
         const { title, content, tags, slug } = req.body;
-        const author = req.user ? req.user.username : 'anonymous';
-
-        const article = await articleService.createArticle({ title, content, tags, author, slug });
+        // User is guaranteed by auth middleware
+        const article = await articleService.createArticle({ title, content, tags, slug, author: req.user.username }, req.user);
         res.status(201).json(article);
     } catch (err) {
         next(err);
@@ -35,7 +34,8 @@ async function getAllArticles(req, res, next) {
         const filters = {};
         if (req.query.tag) filters.tag = req.query.tag;
 
-        const articles = await articleService.getAllArticles(filters);
+        // Pass req.user to filter visible articles
+        const articles = await articleService.getAllArticles(req.user, filters);
         res.json(articles);
     } catch (err) {
         next(err);
@@ -47,7 +47,8 @@ async function getAllArticles(req, res, next) {
  */
 async function getArticle(req, res, next) {
     try {
-        const article = await articleService.getArticleById(req.params.id);
+        // Pass req.user for permission check
+        const article = await articleService.getArticleById(req.params.id, req.user);
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
     } catch (err) {
@@ -66,8 +67,8 @@ async function updateArticle(req, res, next) {
         }
 
         const { title, content, tags } = req.body;
-        const author = req.user ? req.user.username : 'anonymous';
-        const article = await articleService.updateArticle(req.params.id, { title, content, tags, author });
+        // Pass req.user for permission check & attribution
+        const article = await articleService.updateArticle(req.params.id, { title, content, tags }, req.user);
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json(article);
     } catch (err) {
@@ -80,7 +81,7 @@ async function updateArticle(req, res, next) {
  */
 async function deleteArticle(req, res, next) {
     try {
-        const article = await articleService.deleteArticle(req.params.id);
+        const article = await articleService.deleteArticle(req.params.id, req.user);
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json({ message: 'Article deleted', article });
     } catch (err) {
@@ -93,7 +94,7 @@ async function deleteArticle(req, res, next) {
  */
 async function searchArticles(req, res, next) {
     try {
-        const articles = await articleService.searchArticles(req.query.q);
+        const articles = await articleService.searchArticles(req.query.q, req.user);
         res.json(articles);
     } catch (err) {
         next(err);
@@ -105,7 +106,7 @@ async function searchArticles(req, res, next) {
  */
 async function getHistory(req, res, next) {
     try {
-        const history = await articleService.getArticleHistory(req.params.id);
+        const history = await articleService.getArticleHistory(req.params.id, req.user);
         if (history === null) return res.status(404).json({ error: 'Article not found' });
         res.json(history);
     } catch (err) {
@@ -118,12 +119,45 @@ async function getHistory(req, res, next) {
  */
 async function restoreVersion(req, res, next) {
     try {
-        const { commitHash } = req.body;
         if (!commitHash) return res.status(400).json({ error: 'commitHash is required' });
 
-        const article = await articleService.restoreArticle(req.params.id, commitHash);
+        const article = await articleService.restoreArticle(req.params.id, commitHash, req.user);
         if (!article) return res.status(404).json({ error: 'Article not found' });
         res.json({ message: 'Article restored', article });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * POST /api/articles/:id/share — Share article
+ */
+async function shareArticle(req, res, next) {
+    try {
+        const { usernameOrEmail, permission } = req.body;
+        // Basic validation
+        if (!usernameOrEmail || !['viewer', 'editor'].includes(permission)) {
+            return res.status(400).json({ error: 'Valid username and permission (viewer/editor) required' });
+        }
+
+        const updatedList = await articleService.shareArticle(req.params.id, usernameOrEmail, permission, req.user);
+        if (!updatedList) return res.status(404).json({ error: 'Article not found' });
+
+        res.json({ message: 'Article shared successfully', sharedWith: updatedList });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * DELETE /api/articles/:id/share/:userId — Remove access
+ */
+async function removeAccess(req, res, next) {
+    try {
+        const updatedList = await articleService.removeAccess(req.params.id, req.params.userId, req.user);
+        if (!updatedList) return res.status(404).json({ error: 'Article not found' });
+
+        res.json({ message: 'Access removed successfully', sharedWith: updatedList });
     } catch (err) {
         next(err);
     }
@@ -138,4 +172,6 @@ module.exports = {
     searchArticles,
     getHistory,
     restoreVersion,
+    shareArticle,
+    removeAccess
 };

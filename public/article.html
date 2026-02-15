@@ -50,6 +50,34 @@
         </div>
     </main>
 
+    <!-- ========== Share Manager Modal ========== -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal">
+            <h2 class="modal__title">Share Article</h2>
+            <div class="form-group">
+                <label>Add User</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" class="input" id="share-username" placeholder="Username" style="flex:1" />
+                    <select class="input" id="share-permission" style="width:100px">
+                        <option value="viewer">Viewer</option>
+                        <option value="editor">Editor</option>
+                    </select>
+                    <button class="btn btn--primary" id="share-add-btn">Add</button>
+                </div>
+            </div>
+            <div class="mt-2">
+                <h3>Who has access</h3>
+                <div class="user-list" id="share-list">
+                    <!-- Populated by JS -->
+                    <div class="skeleton" style="height:32px;margin-bottom:8px"></div>
+                </div>
+            </div>
+            <button class="btn btn--secondary mt-2"
+                onclick="document.getElementById('share-modal').classList.remove('active')"
+                style="width:100%">Close</button>
+        </div>
+    </div>
+
     <!-- ========== Auth Modal ========== -->
     <div class="modal-overlay" id="auth-modal">
         <div class="modal">

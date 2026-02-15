@@ -161,6 +161,114 @@ function initAuthModal() {
     }
 }
 
+// ---------- Share UI ----------
+
+async function initShareModal(articleId) {
+    const modal = document.getElementById('share-modal');
+    const listEl = document.getElementById('share-list');
+    const addBtn = document.getElementById('share-add-btn');
+    const usernameInput = document.getElementById('share-username');
+    const permissionSelect = document.getElementById('share-permission');
+
+    if (!modal) return;
+
+    modal.classList.add('active');
+    loadShareList();
+
+    async function loadShareList() {
+        listEl.innerHTML = '<div class="skeleton" style="height:32px"></div>';
+        try {
+            // We reload article to get fresh sharedWith list
+            // Optimization: Could have a dedicated endpoint, but getArticle works
+            const article = await WikiAPI.getArticle(articleId);
+            renderList(article.sharedWith || [], article.owner);
+        } catch (err) {
+            listEl.innerHTML = `<p style="color:var(--danger)">Error: ${err.message}</p>`;
+        }
+    }
+
+    function renderList(sharedWith, ownerId) {
+        let html = '';
+        // We logic this client-side for now, but ideally backend populates usernames
+        // The service layer *does* populate sharedWith.user, so we expect objects
+
+        if (!sharedWith.length) {
+            html = '<p class="text-muted">No one else has access.</p>';
+        } else {
+            html = sharedWith.map(entry => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border)">
+                    <div>
+                        <strong>${entry.user ? entry.user.username : 'Unknown'}</strong>
+                        <span class="tag" style="margin-left:8px">${entry.permission}</span>
+                    </div>
+                    <button class="btn btn--danger btn--sm" onclick="handleRemoveAccess('${articleId}', '${entry.user._id}')">Remove</button>
+                </div>
+            `).join('');
+        }
+        listEl.innerHTML = html;
+    }
+
+    // Remove old listener to prevent duplicates (simple hack)
+    const newBtn = addBtn.cloneNode(true);
+    addBtn.parentNode.replaceChild(newBtn, addBtn);
+
+    newBtn.addEventListener('click', async () => {
+        const username = usernameInput.value.trim();
+        const permission = permissionSelect.value;
+        if (!username) return showToast('Enter a username', 'error');
+
+        try {
+            const res = await WikiAPI.request(`/articles/${articleId}/share`, {
+                method: 'POST',
+                body: JSON.stringify({ usernameOrEmail: username, permission })
+            });
+            showToast('User added', 'success');
+            usernameInput.value = '';
+            // Update list from response
+            renderList(res.sharedWith);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    });
+}
+
+// Global handler for remove access
+window.handleRemoveAccess = async (articleId, userId) => {
+    if (!confirm('Remove access for this user?')) return;
+    try {
+        const res = await WikiAPI.request(`/articles/${articleId}/share/${userId}`, {
+            method: 'DELETE'
+        });
+        showToast('Access removed', 'success');
+        // Re-render based on response
+        // Quickest way is to reload the list from the modal context, 
+        // but here we might need to rely on the response or reload the modal
+        // For simplicity, let's close and reopen or just reload page? 
+        // Better: Find the list element and update it.
+        // We'll trust the response returns the updated list.
+        const listEl = document.getElementById('share-list');
+        if (listEl && res.sharedWith) {
+            let html = '';
+            if (!res.sharedWith.length) {
+                html = '<p class="text-muted">No one else has access.</p>';
+            } else {
+                html = res.sharedWith.map(entry => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border)">
+                        <div>
+                            <strong>${entry.user ? entry.user.username : 'Unknown'}</strong>
+                            <span class="tag" style="margin-left:8px">${entry.permission}</span>
+                        </div>
+                        <button class="btn btn--danger btn--sm" onclick="handleRemoveAccess('${articleId}', '${entry.user._id}')">Remove</button>
+                    </div>
+                `).join('');
+            }
+            listEl.innerHTML = html;
+        }
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+};
+
 // ---------- Offline Support ----------
 
 function saveOfflineDraft(articleId, data) {
@@ -425,14 +533,30 @@ async function initArticleView() {
 
         contentDiv.innerHTML = renderMarkdown(article.content);
 
-        // Show edit/delete buttons for editors
-        const user = WikiAPI.getUser();
-        if (user && user.role === 'editor') {
-            actionsEl.innerHTML = `
-        <a href="/editor?id=${article._id}" class="btn btn--primary btn--sm">✏️ Edit</a>
-        <a href="/history?id=${article._id}" class="btn btn--secondary btn--sm">🕒 History</a>
-        <button class="btn btn--danger btn--sm" id="delete-btn">🗑️ Delete</button>
-      `;
+        // Render buttons based on computed permission
+        const myPerm = article.currentUserPermission || 'viewer'; // 'viewer', 'editor', 'owner'
+
+        let buttonsHtml = `<a href="/history?id=${article._id}" class="btn btn--secondary btn--sm">🕒 History</a>`;
+
+        if (myPerm === 'editor' || myPerm === 'owner') {
+            buttonsHtml = `
+                <a href="/editor?id=${article._id}" class="btn btn--primary btn--sm">✏️ Edit</a>
+                ${buttonsHtml}
+             `;
+        }
+
+        if (myPerm === 'owner') {
+            buttonsHtml += `
+                <button class="btn btn--secondary btn--sm" id="share-btn">🔗 Share</button>
+                <button class="btn btn--danger btn--sm" id="delete-btn">🗑️ Delete</button>
+            `;
+        }
+
+        actionsEl.innerHTML = buttonsHtml;
+
+        // Attach listeners
+        if (myPerm === 'owner') {
+            document.getElementById('share-btn').addEventListener('click', () => initShareModal(articleId));
             document.getElementById('delete-btn').addEventListener('click', async () => {
                 if (!confirm('Delete this article permanently?')) return;
                 try {
@@ -443,10 +567,6 @@ async function initArticleView() {
                     showToast(err.message, 'error');
                 }
             });
-        } else {
-            actionsEl.innerHTML = `
-        <a href="/history?id=${article._id}" class="btn btn--secondary btn--sm">🕒 History</a>
-      `;
         }
 
         window.loadPage = () => initArticleView();
