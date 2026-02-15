@@ -218,10 +218,7 @@ async function initShareModal(articleId) {
         if (!username) return showToast('Enter a username', 'error');
 
         try {
-            const res = await WikiAPI.request(`/articles/${articleId}/share`, {
-                method: 'POST',
-                body: JSON.stringify({ usernameOrEmail: username, permission })
-            });
+            const res = await WikiAPI.shareArticle(articleId, username, permission);
             showToast('User added', 'success');
             usernameInput.value = '';
             // Update list from response
@@ -236,9 +233,7 @@ async function initShareModal(articleId) {
 window.handleRemoveAccess = async (articleId, userId) => {
     if (!confirm('Remove access for this user?')) return;
     try {
-        const res = await WikiAPI.request(`/articles/${articleId}/share/${userId}`, {
-            method: 'DELETE'
-        });
+        const res = await WikiAPI.removeAccess(articleId, userId);
         showToast('Access removed', 'success');
         // Re-render based on response
         // Quickest way is to reload the list from the modal context, 

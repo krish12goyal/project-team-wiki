@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Article - Team Wiki</title>
+  <title>Create Article - Team Wiki</title>
   <link rel="stylesheet" href="/css/modern-styles.css">
 </head>
 <body>
@@ -47,7 +47,7 @@
 
         <div class="sidebar__section">
           <p class="sidebar__section-title">Actions</p>
-          <a href="/create.html" class="sidebar__link">
+          <a href="/create.html" class="sidebar__link active">
             <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -104,14 +104,14 @@
               type="text" 
               class="editor-title-input" 
               id="article-title" 
-              placeholder="Article Title"
+              placeholder="Untitled Article"
               autocomplete="off"
             >
           </div>
           <div class="flex gap-2">
-            <a href="#" class="btn btn--secondary btn--sm" id="view-btn">View</a>
             <span id="save-status" style="font-size: 0.875rem; color: var(--text-muted); display: flex; align-items: center;"></span>
-            <button class="btn btn--primary btn--sm" id="save-btn">Save Changes</button>
+            <button class="btn btn--secondary btn--sm" id="cancel-btn">Cancel</button>
+            <button class="btn btn--primary btn--sm" id="save-btn">Save Article</button>
           </div>
         </div>
 
@@ -155,7 +155,16 @@
           <textarea 
             class="editor-textarea" 
             id="article-content" 
-            placeholder="Start writing your article here..."
+            placeholder="Start writing your article here...
+
+You can use Markdown formatting:
+- **Bold** text with **asterisks**
+- *Italic* text with *asterisks*
+- # Headers with hash symbols
+- - List items with dashes
+- > Quotes with greater-than signs
+- `Inline code` with backticks
+- ```Code blocks``` with triple backticks"
           ></textarea>
         </div>
       </div>
@@ -168,90 +177,26 @@
   <!-- Scripts -->
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.0/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@14.1.0/marked.min.js"></script>
   <script>
     // Initialize
     initDashboard();
     initSidebar();
     initEditor();
 
-    let articleId = null;
-    let lastSavedContent = '';
-    let autoSaveTimer;
-
-    async function initEditor() {
-      articleId = new URLSearchParams(window.location.search).get('id');
-      
-      if (!articleId) {
-        showToast('No article ID provided', 'error');
-        window.location.href = '/dashboard.html';
-        return;
-      }
-
+    function initEditor() {
       const titleInput = document.getElementById('article-title');
       const contentInput = document.getElementById('article-content');
       const tagsInput = document.getElementById('article-tags');
       const saveBtn = document.getElementById('save-btn');
-      const viewBtn = document.getElementById('view-btn');
+      const cancelBtn = document.getElementById('cancel-btn');
       const saveStatus = document.getElementById('save-status');
-
-      // Set view button link
-      viewBtn.href = `/article.html?id=${articleId}`;
-
-      // Load article data
-      try {
-        const article = await WikiAPI.getArticle(articleId);
-        
-        // Check permissions
-        const user = WikiAPI.getUser();
-        const canEdit = article.currentUserPermission === 'editor' || 
-                       article.currentUserPermission === 'owner' ||
-                       article.author === user?.username;
-        
-        if (!canEdit) {
-          showToast('You do not have permission to edit this article', 'error');
-          window.location.href = `/article.html?id=${articleId}`;
-          return;
-        }
-
-        titleInput.value = article.title || '';
-        contentInput.value = article.content || '';
-        tagsInput.value = (article.tags || []).join(', ');
-        lastSavedContent = article.content || '';
-        
-        saveStatus.textContent = 'Loaded';
-        
-        // Check for offline draft
-        const draft = getOfflineDraft(articleId);
-        if (draft && draft.content !== article.content) {
-          if (confirm('You have unsaved changes from a previous session. Would you like to restore them?')) {
-            titleInput.value = draft.title || article.title || '';
-            contentInput.value = draft.content || article.content || '';
-            tagsInput.value = (draft.tags || article.tags || []).join(', ');
-            showToast('Draft restored', 'info');
-          }
-          clearOfflineDraft(articleId);
-        }
-      } catch (err) {
-        showToast('Failed to load article', 'error');
-        console.error(err);
-      }
 
       // Auto-resize textarea
       contentInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = Math.max(500, this.scrollHeight) + 'px';
-        
-        // Auto-save draft
-        clearTimeout(autoSaveTimer);
-        saveStatus.textContent = 'Unsaved changes...';
-        autoSaveTimer = setTimeout(() => {
-          saveOfflineDraft(articleId, {
-            title: titleInput.value,
-            content: contentInput.value,
-            tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean)
-          });
-          saveStatus.textContent = 'Draft saved locally';
-        }, 2000);
       });
 
       // Save article
@@ -266,25 +211,81 @@
           return;
         }
 
+        if (!content) {
+          showToast('Please enter some content', 'error');
+          contentInput.focus();
+          return;
+        }
+
         saveBtn.disabled = true;
         saveBtn.textContent = 'Saving...';
         saveStatus.textContent = 'Saving...';
 
         try {
-          await WikiAPI.updateArticle(articleId, { title, content, tags });
-          lastSavedContent = content;
-          clearOfflineDraft(articleId);
-          showToast('Article saved successfully!', 'success');
-          saveStatus.textContent = 'Saved';
+          const data = await WikiAPI.createArticle({ title, content, tags });
+          showToast('Article created successfully!', 'success');
+          
+          // Clear any offline draft
+          clearOfflineDraft();
+          
+          // Redirect to the article
+          setTimeout(() => {
+            window.location.href = `/article.html?id=${data._id}`;
+          }, 500);
         } catch (err) {
           showToast(err.message || 'Failed to save article', 'error');
-          saveStatus.textContent = 'Save failed - draft saved locally';
-          saveOfflineDraft(articleId, { title, content, tags });
-        } finally {
+          
+          // Save offline draft
+          saveOfflineDraft({ title, content, tags });
+          saveStatus.textContent = 'Saved offline';
+          
           saveBtn.disabled = false;
-          saveBtn.textContent = 'Save Changes';
+          saveBtn.textContent = 'Save Article';
         }
       });
+
+      // Cancel button
+      cancelBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+          window.location.href = '/dashboard.html';
+        }
+      });
+
+      // Auto-save offline draft
+      let autoSaveTimer;
+      const saveDraft = () => {
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        const tags = tagsInput.value.split(',').map(t => t.trim()).filter(Boolean);
+        
+        if (title || content) {
+          saveOfflineDraft({ title, content, tags });
+          saveStatus.textContent = 'Draft saved locally';
+        }
+      };
+
+      titleInput.addEventListener('input', () => {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(saveDraft, 2000);
+      });
+
+      contentInput.addEventListener('input', () => {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(saveDraft, 2000);
+      });
+
+      // Check for offline draft on load
+      const draft = getOfflineDraft();
+      if (draft) {
+        if (confirm('You have an unsaved draft. Would you like to restore it?')) {
+          titleInput.value = draft.title || '';
+          contentInput.value = draft.content || '';
+          tagsInput.value = (draft.tags || []).join(', ');
+          showToast('Draft restored', 'info');
+        } else {
+          clearOfflineDraft();
+        }
+      }
 
       // Focus title on load
       titleInput.focus();
@@ -305,37 +306,24 @@
       const newCursorPos = start + before.length + selection.length;
       textarea.setSelectionRange(newCursorPos, newCursorPos);
       textarea.focus();
-      
-      // Trigger input event for auto-save
-      textarea.dispatchEvent(new Event('input'));
     };
 
     // Offline draft functions
-    function saveOfflineDraft(id, data) {
-      const drafts = JSON.parse(localStorage.getItem('wiki_edit_drafts') || '{}');
-      drafts[id] = { ...data, savedAt: Date.now() };
-      localStorage.setItem('wiki_edit_drafts', JSON.stringify(drafts));
+    function saveOfflineDraft(data) {
+      localStorage.setItem('wiki_create_draft', JSON.stringify({
+        ...data,
+        savedAt: Date.now()
+      }));
     }
 
-    function getOfflineDraft(id) {
-      const drafts = JSON.parse(localStorage.getItem('wiki_edit_drafts') || '{}');
-      return drafts[id] || null;
+    function getOfflineDraft() {
+      const draft = localStorage.getItem('wiki_create_draft');
+      return draft ? JSON.parse(draft) : null;
     }
 
-    function clearOfflineDraft(id) {
-      const drafts = JSON.parse(localStorage.getItem('wiki_edit_drafts') || '{}');
-      delete drafts[id];
-      localStorage.setItem('wiki_edit_drafts', JSON.stringify(drafts));
+    function clearOfflineDraft() {
+      localStorage.removeItem('wiki_create_draft');
     }
-
-    // Warn about unsaved changes when leaving
-    window.addEventListener('beforeunload', (e) => {
-      const content = document.getElementById('article-content').value;
-      if (content !== lastSavedContent) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
   </script>
 </body>
 </html>

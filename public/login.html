@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Team Wiki</title>
+  <link rel="stylesheet" href="/css/modern-styles.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-card__header">
+        <div class="auth-card__logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <h1 class="auth-card__title">Welcome back</h1>
+        <p class="auth-card__subtitle">Sign in to your account to continue</p>
+      </div>
+
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label class="form-group__label" for="email">Email address</label>
+          <input 
+            type="email" 
+            id="email" 
+            class="input" 
+            placeholder="you@example.com"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-group__label" for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            class="input" 
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <div class="flex justify-between items-center mb-4">
+          <label class="flex items-center gap-2" style="cursor: pointer;">
+            <input type="checkbox" id="remember-me" style="width: 16px; height: 16px;">
+            <span style="font-size: 0.875rem; color: var(--text-secondary);">Remember me</span>
+          </label>
+          <a href="#" style="font-size: 0.875rem;">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn--primary w-full" id="login-btn">
+          Sign in
+        </button>
+      </form>
+
+      <div class="auth-card__footer">
+        <p>Don't have an account? <a href="/register.html">Create one</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script>
+    // Check if already logged in
+    const user = WikiAPI.getUser();
+    if (user) {
+      window.location.href = '/dashboard.html';
+    }
+
+    // Form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('login-btn');
+      
+      if (!email || !password) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in...';
+
+      try {
+        // Note: Backend uses username, but we accept email in UI
+        // We'll use email as username for now
+        const data = await WikiAPI.login(email, password);
+        WikiAPI.saveAuth(data.token, data.user);
+        showToast('Welcome back!', 'success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/dashboard.html';
+        }, 500);
+      } catch (err) {
+        showToast(err.message || 'Invalid credentials', 'error');
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    });
+
+    // Toast function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast--${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4500);
+    }
+  </script>
+</body>
+</html>

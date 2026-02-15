@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Team Wiki</title>
+  <link rel="stylesheet" href="/css/modern-styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__header">
+        <a href="/dashboard.html" class="sidebar__brand">
+          <div class="sidebar__brand-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+          <span>Team Wiki</span>
+        </a>
+      </div>
+
+      <nav class="sidebar__nav">
+        <div class="sidebar__section">
+          <p class="sidebar__section-title">Main</p>
+          <a href="/dashboard.html" class="sidebar__link">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="/my-articles.html" class="sidebar__link">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span>My Articles</span>
+          </a>
+          <a href="/shared.html" class="sidebar__link">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <span>Shared With Me</span>
+          </a>
+        </div>
+
+        <div class="sidebar__section">
+          <p class="sidebar__section-title">Actions</p>
+          <a href="/create.html" class="sidebar__link">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span>Create Article</span>
+          </a>
+          <a href="/search.html" class="sidebar__link">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <span>Search</span>
+          </a>
+        </div>
+
+        <div class="sidebar__section">
+          <p class="sidebar__section-title">Settings</p>
+          <a href="/settings.html" class="sidebar__link active">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Settings</span>
+          </a>
+          <a href="#" class="sidebar__link" id="logout-link">
+            <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span>Logout</span>
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="sidebar__user">
+          <div class="sidebar__user-avatar" id="user-avatar">U</div>
+          <div class="sidebar__user-info">
+            <div class="sidebar__user-name" id="user-name">User</div>
+            <div class="sidebar__user-role" id="user-role">Editor</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="top-header__left">
+          <button class="mobile-menu-btn" id="mobile-menu-btn">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <h1 class="top-header__title">Settings</h1>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="content-wrapper">
+        <div style="max-width: 600px;">
+          <!-- Profile Section -->
+          <div class="card mb-4">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Profile Information</h3>
+                <p class="card__meta mt-1">View your account details</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-group__label">Username</label>
+              <input type="text" class="input" id="profile-username" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-group__label">Role</label>
+              <input type="text" class="input" id="profile-role" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-group__label">Display Name</label>
+              <input type="text" class="input" id="profile-name" placeholder="Your display name">
+              <p class="form-group__hint">This name will be shown in the interface</p>
+            </div>
+            <button class="btn btn--primary" id="save-profile-btn">Save Changes</button>
+          </div>
+
+          <!-- Offline Drafts Section -->
+          <div class="card mb-4">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">Offline Drafts</h3>
+                <p class="card__meta mt-1">Manage locally saved drafts</p>
+              </div>
+            </div>
+            <div id="drafts-list">
+              <p style="color: var(--text-muted); font-size: 0.9375rem;">Checking for drafts...</p>
+            </div>
+          </div>
+
+          <!-- About Section -->
+          <div class="card">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">About</h3>
+                <p class="card__meta mt-1">Team Wiki Application</p>
+              </div>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.7;">
+              Team Wiki is a collaborative documentation platform built for teams. 
+              Create, edit, and share articles with your team members.
+            </p>
+            <div class="divider"></div>
+            <p style="color: var(--text-muted); font-size: 0.8125rem;">
+              Version 1.0.0 • Built with ❤️ for teams
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+  <script>
+    // Initialize
+    initDashboard();
+    initSidebar();
+    initSettings();
+
+    function initSettings() {
+      const user = WikiAPI.getUser();
+      if (!user) return;
+
+      // Fill profile info
+      document.getElementById('profile-username').value = user.username || user.email || '';
+      document.getElementById('profile-role').value = (user.role || 'Editor').charAt(0).toUpperCase() + (user.role || 'Editor').slice(1);
+      document.getElementById('profile-name').value = localStorage.getItem('wiki_user_name') || user.name || '';
+
+      // Save profile button
+      document.getElementById('save-profile-btn').addEventListener('click', () => {
+        const name = document.getElementById('profile-name').value.trim();
+        localStorage.setItem('wiki_user_name', name);
+        
+        // Update stored user object
+        const updatedUser = { ...user, name };
+        WikiAPI.saveAuth(WikiAPI.getToken(), updatedUser);
+        
+        showToast('Profile updated', 'success');
+        initSidebar(); // Refresh sidebar
+      });
+
+      // Load offline drafts
+      loadOfflineDrafts();
+    }
+
+    function loadOfflineDrafts() {
+      const container = document.getElementById('drafts-list');
+      const drafts = JSON.parse(localStorage.getItem('wiki_edit_drafts') || '{}');
+      const createDraft = localStorage.getItem('wiki_create_draft');
+      
+      let html = '';
+      let hasDrafts = false;
+
+      if (createDraft) {
+        const draft = JSON.parse(createDraft);
+        hasDrafts = true;
+        html += `
+          <div class="share-list__item" style="margin-bottom: 12px;">
+            <div class="share-list__user">
+              <div class="share-list__avatar" style="background: linear-gradient(135deg, var(--warning), var(--danger));">N</div>
+              <div class="share-list__info">
+                <span class="share-list__name">New Article Draft</span>
+                <span class="share-list__email">${draft.title || 'Untitled'} • ${formatDate(draft.savedAt)}</span>
+              </div>
+            </div>
+            <a href="/create.html" class="btn btn--primary btn--sm">Continue</a>
+          </div>
+        `;
+      }
+
+      Object.entries(drafts).forEach(([id, draft]) => {
+        hasDrafts = true;
+        html += `
+          <div class="share-list__item" style="margin-bottom: 12px;">
+            <div class="share-list__user">
+              <div class="share-list__avatar" style="background: linear-gradient(135deg, var(--warning), var(--danger));">E</div>
+              <div class="share-list__info">
+                <span class="share-list__name">Edit Draft</span>
+                <span class="share-list__email">${draft.title || 'Untitled'} • ${formatDate(draft.savedAt)}</span>
+              </div>
+            </div>
+            <a href="/editor.html?id=${id}" class="btn btn--primary btn--sm">Continue</a>
+          </div>
+        `;
+      });
+
+      if (!hasDrafts) {
+        html = '<p style="color: var(--text-muted); font-size: 0.9375rem;">No offline drafts found.</p>';
+      } else {
+        html += `
+          <div class="mt-3">
+            <button class="btn btn--danger btn--sm" onclick="clearAllDrafts()">Clear All Drafts</button>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    window.clearAllDrafts = function() {
+      if (!confirm('Are you sure you want to delete all offline drafts?')) return;
+      
+      localStorage.removeItem('wiki_edit_drafts');
+      localStorage.removeItem('wiki_create_draft');
+      showToast('All drafts cleared', 'success');
+      loadOfflineDrafts();
+    };
+  </script>
+</body>
+</html>

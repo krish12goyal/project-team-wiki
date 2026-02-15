@@ -110,6 +110,19 @@ async function restoreArticle(id, commitHash) {
     });
 }
 
+async function shareArticle(id, usernameOrEmail, permission) {
+    return apiRequest(`/articles/${id}/share`, {
+        method: 'POST',
+        body: JSON.stringify({ usernameOrEmail, permission }),
+    });
+}
+
+async function removeAccess(articleId, userId) {
+    return apiRequest(`/articles/${articleId}/share/${userId}`, {
+        method: 'DELETE',
+    });
+}
+
 // ---------- Auth API ----------
 
 async function register(username, password, role) {
@@ -131,5 +144,6 @@ window.WikiAPI = {
     getToken, getUser, saveAuth, clearAuth,
     getArticles, getArticle, createArticle, updateArticle, deleteArticle,
     searchArticles, getArticleHistory, restoreArticle,
+    shareArticle, removeAccess,
     register, login,
 };

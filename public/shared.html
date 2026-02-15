@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Version History - Team Wiki</title>
+  <title>Shared With Me - Team Wiki</title>
   <link rel="stylesheet" href="/css/modern-styles.css">
 </head>
 <body>
@@ -37,7 +37,7 @@
             </svg>
             <span>My Articles</span>
           </a>
-          <a href="/shared.html" class="sidebar__link">
+          <a href="/shared.html" class="sidebar__link active">
             <svg class="sidebar__link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
             </svg>
@@ -103,14 +103,14 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
-          <h1 class="top-header__title" id="page-title">Version History</h1>
+          <h1 class="top-header__title">Shared With Me</h1>
         </div>
         <div class="top-header__right">
-          <a href="#" class="btn btn--secondary btn--sm" id="back-btn">
+          <a href="/create.html" class="btn btn--primary btn--sm">
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 6px;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            Back to Article
+            New Article
           </a>
         </div>
       </header>
@@ -120,53 +120,27 @@
         <!-- Page Header -->
         <div class="page-header">
           <div class="page-header__left">
-            <h2 class="page-header__title" id="article-title">Loading...</h2>
-            <p class="page-header__subtitle">View and restore previous versions</p>
+            <h2 class="page-header__title">Shared Documents</h2>
+            <p class="page-header__subtitle">Articles shared with you by team members</p>
           </div>
         </div>
 
-        <!-- Timeline -->
-        <div class="card">
-          <div class="card__header">
-            <h3 class="card__title">All Versions</h3>
+        <!-- Articles Grid -->
+        <div class="article-grid" id="articles-grid">
+          <!-- Loading State -->
+          <div class="card">
+            <div class="skeleton" style="height: 20px; width: 70%; margin-bottom: 12px;"></div>
+            <div class="skeleton" style="height: 14px; width: 50%; margin-bottom: 8px;"></div>
+            <div class="skeleton" style="height: 14px; width: 40%;"></div>
           </div>
-          <div class="timeline" id="history-timeline">
-            <!-- Loading State -->
-            <div class="timeline__item">
-              <div class="skeleton" style="height: 16px; width: 120px; margin-bottom: 8px;"></div>
-              <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 8px;"></div>
-              <div class="skeleton" style="height: 14px; width: 40%;"></div>
-            </div>
-            <div class="timeline__item">
-              <div class="skeleton" style="height: 16px; width: 120px; margin-bottom: 8px;"></div>
-              <div class="skeleton" style="height: 20px; width: 55%; margin-bottom: 8px;"></div>
-              <div class="skeleton" style="height: 14px; width: 35%;"></div>
-            </div>
-            <div class="timeline__item">
-              <div class="skeleton" style="height: 16px; width: 120px; margin-bottom: 8px;"></div>
-              <div class="skeleton" style="height: 20px; width: 70%; margin-bottom: 8px;"></div>
-              <div class="skeleton" style="height: 14px; width: 45%;"></div>
-            </div>
+          <div class="card">
+            <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 12px;"></div>
+            <div class="skeleton" style="height: 14px; width: 45%; margin-bottom: 8px;"></div>
+            <div class="skeleton" style="height: 14px; width: 35%;"></div>
           </div>
         </div>
       </div>
     </main>
-  </div>
-
-  <!-- Restore Confirmation Modal -->
-  <div class="modal-overlay" id="restore-modal">
-    <div class="modal" style="max-width: 400px;">
-      <div class="modal__header">
-        <h3 class="modal__title">Restore Version</h3>
-      </div>
-      <div class="modal__body">
-        <p>Are you sure you want to restore this version? The current version will be replaced.</p>
-      </div>
-      <div class="modal__footer">
-        <button class="btn btn--secondary" onclick="closeRestoreModal()">Cancel</button>
-        <button class="btn btn--primary" id="confirm-restore-btn">Restore</button>
-      </div>
-    </div>
   </div>
 
   <!-- Toast Container -->
@@ -179,112 +153,83 @@
     // Initialize
     initDashboard();
     initSidebar();
-    loadHistory();
+    loadSharedArticles();
 
-    let articleId = null;
-    let restoreHash = null;
-
-    async function loadHistory() {
-      articleId = new URLSearchParams(window.location.search).get('id');
-      
-      if (!articleId) {
-        showToast('No article ID provided', 'error');
-        window.location.href = '/dashboard.html';
-        return;
-      }
-
-      // Set back button link
-      document.getElementById('back-btn').href = `/article.html?id=${articleId}`;
-
+    // Load shared articles
+    async function loadSharedArticles() {
       try {
-        // Load article and history in parallel
-        const [article, history] = await Promise.all([
-          WikiAPI.getArticle(articleId),
-          WikiAPI.getArticleHistory(articleId)
-        ]);
-
-        document.getElementById('article-title').textContent = article.title;
+        const articles = await WikiAPI.getArticles();
+        const user = WikiAPI.getUser();
         
-        if (history.length === 0) {
-          document.getElementById('history-timeline').innerHTML = `
-            <div class="empty-state">
-              <div class="empty-state__icon">📜</div>
-              <h3 class="empty-state__title">No history yet</h3>
-              <p class="empty-state__text">Edit the article to create version history.</p>
-            </div>
-          `;
-          return;
-        }
-
-        renderHistory(history);
+        // Filter articles shared with me (not owned by me)
+        const sharedArticles = articles.filter(a => {
+          const isOwner = a.owner === user?.id || a.author === user?.username;
+          return !isOwner;
+        });
+        
+        renderArticles(sharedArticles);
       } catch (err) {
-        showToast('Failed to load history', 'error');
+        showToast('Failed to load articles', 'error');
         console.error(err);
       }
     }
 
-    function renderHistory(history) {
-      const timeline = document.getElementById('history-timeline');
-      const user = WikiAPI.getUser();
-      const canRestore = user?.role === 'editor' || user?.role === 'admin';
+    // Render articles
+    function renderArticles(articles) {
+      const grid = document.getElementById('articles-grid');
       
-      timeline.innerHTML = history.map((entry, index) => `
-        <div class="timeline__item">
-          <div class="timeline__date">${formatDate(entry.date)}</div>
-          <div class="timeline__message">${escapeHtml(entry.message || 'No message')}</div>
-          <div class="timeline__author">
-            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 4px;">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-            ${escapeHtml(entry.author || 'Unknown')}
-            ${entry.hash ? `<span style="margin-left: 8px; font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">(${entry.hash.substring(0, 7)})</span>` : ''}
+      if (articles.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <div class="empty-state__icon">🤝</div>
+            <h3 class="empty-state__title">No shared articles</h3>
+            <p class="empty-state__text">Articles shared with you by your team members will appear here.</p>
+            <a href="/dashboard.html" class="btn btn--secondary mt-4">Browse All Articles</a>
           </div>
-          ${canRestore && index > 0 ? `
-            <button class="btn btn--secondary btn--sm mt-2" onclick="openRestoreModal('${entry.hash}')">
-              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-              </svg>
-              Restore this version
-            </button>
-          ` : ''}
-        </div>
-      `).join('');
-    }
-
-    // Restore modal functions
-    window.openRestoreModal = function(hash) {
-      restoreHash = hash;
-      document.getElementById('restore-modal').classList.add('active');
-    };
-
-    window.closeRestoreModal = function() {
-      document.getElementById('restore-modal').classList.remove('active');
-      restoreHash = null;
-    };
-
-    document.getElementById('confirm-restore-btn').addEventListener('click', async () => {
-      if (!restoreHash) return;
+        `;
+        return;
+      }
       
-      try {
-        await WikiAPI.restoreArticle(articleId, restoreHash);
-        showToast('Article restored successfully', 'success');
-        closeRestoreModal();
+      grid.innerHTML = articles.map(article => {
+        // Determine user's role for this article
+        const user = WikiAPI.getUser();
+        let role = 'Viewer';
+        let roleClass = 'badge--viewer';
         
-        // Reload history
-        setTimeout(() => {
-          loadHistory();
-        }, 500);
-      } catch (err) {
-        showToast(err.message || 'Failed to restore version', 'error');
-      }
-    });
-
-    // Close modal on overlay click
-    document.getElementById('restore-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'restore-modal') {
-        closeRestoreModal();
-      }
-    });
+        if (article.currentUserPermission === 'editor') {
+          role = 'Editor';
+          roleClass = 'badge--editor';
+        }
+        
+        return `
+          <div class="card">
+            <div class="card__header">
+              <div>
+                <h3 class="card__title">${escapeHtml(article.title)}</h3>
+                <div class="card__meta mt-1">
+                  <span class="card__meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Owner: ${escapeHtml(article.author)}
+                  </span>
+                </div>
+              </div>
+              <span class="badge ${roleClass}">${role}</span>
+            </div>
+            <div class="card__footer">
+              <a href="/article.html?id=${article._id}" class="btn btn--secondary btn--sm">View</a>
+              <span class="card__meta-item">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                ${formatDate(article.updatedAt)}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   </script>
 </body>
 </html>

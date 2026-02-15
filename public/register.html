@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account - Team Wiki</title>
+  <link rel="stylesheet" href="/css/modern-styles.css">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-card__header">
+        <div class="auth-card__logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <h1 class="auth-card__title">Create your account</h1>
+        <p class="auth-card__subtitle">Start collaborating with your team today</p>
+      </div>
+
+      <form id="register-form" class="auth-form">
+        <div class="form-group">
+          <label class="form-group__label" for="name">Full name</label>
+          <input 
+            type="text" 
+            id="name" 
+            class="input" 
+            placeholder="John Doe"
+            required
+            autocomplete="name"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-group__label" for="email">Email address</label>
+          <input 
+            type="email" 
+            id="email" 
+            class="input" 
+            placeholder="you@example.com"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-group__label" for="password">Password</label>
+          <input 
+            type="password" 
+            id="password" 
+            class="input" 
+            placeholder="Create a password"
+            required
+            autocomplete="new-password"
+            minlength="6"
+          >
+          <p class="form-group__hint">Must be at least 6 characters</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-group__label" for="confirm-password">Confirm password</label>
+          <input 
+            type="password" 
+            id="confirm-password" 
+            class="input" 
+            placeholder="Confirm your password"
+            required
+            autocomplete="new-password"
+          >
+        </div>
+
+        <button type="submit" class="btn btn--primary w-full" id="register-btn">
+          Create account
+        </button>
+      </form>
+
+      <div class="auth-card__footer">
+        <p>Already have an account? <a href="/login.html">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script>
+    // Check if already logged in
+    const user = WikiAPI.getUser();
+    if (user) {
+      window.location.href = '/dashboard.html';
+    }
+
+    // Form submission
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const registerBtn = document.getElementById('register-btn');
+      
+      // Validation
+      if (!name || !email || !password || !confirmPassword) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast('Passwords do not match', 'error');
+        return;
+      }
+
+      registerBtn.disabled = true;
+      registerBtn.textContent = 'Creating account...';
+
+      try {
+        // Note: Backend uses username, we'll use email as username
+        // Store name in localStorage for display purposes
+        const data = await WikiAPI.register(email, password, 'editor');
+        WikiAPI.saveAuth(data.token, { ...data.user, name, email });
+        localStorage.setItem('wiki_user_name', name);
+        showToast('Account created successfully!', 'success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/dashboard.html';
+        }, 500);
+      } catch (err) {
+        showToast(err.message || 'Failed to create account', 'error');
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Create account';
+      }
+    });
+
+    // Toast function
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast--${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4500);
+    }
+  </script>
+</body>
+</html>
