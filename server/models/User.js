@@ -15,6 +15,13 @@ const userSchema = new mongoose.Schema(
             trim: true,
             minlength: 3,
         },
+        email: {
+            type: String,
+            required: [true, 'Email is required'],
+            unique: true,
+            trim: true,
+            lowercase: true,
+        },
         // Stored as bcrypt hash
         password: {
             type: String,

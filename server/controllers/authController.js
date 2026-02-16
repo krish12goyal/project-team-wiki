@@ -18,15 +18,21 @@ async function register(req, res, next) {
             return res.status(400).json({ error: 'Validation failed', details: errors.array() });
         }
 
-        const { username, password, role } = req.body;
+        const { username, email, password, role } = req.body;
 
-        // Check if user already exists
-        const existing = await User.findOne({ username });
-        if (existing) {
+        // Check if username already exists
+        const existingUsername = await User.findOne({ username });
+        if (existingUsername) {
             return res.status(409).json({ error: 'Username already taken' });
         }
 
-        const user = await User.create({ username, password, role: role || 'editor' });
+        // Check if email already exists
+        const existingEmail = await User.findOne({ email: email.toLowerCase() });
+        if (existingEmail) {
+            return res.status(409).json({ error: 'Email already registered' });
+        }
+
+        const user = await User.create({ username, email: email.toLowerCase(), password, role: role || 'editor' });
 
         // Generate JWT
         const token = jwt.sign(
@@ -58,7 +64,14 @@ async function login(req, res, next) {
 
         const { username, password } = req.body;
 
-        const user = await User.findOne({ username });
+        // Try to find user by username or email
+        const user = await User.findOne({
+            $or: [
+                { username: username },
+                { email: username.toLowerCase() }
+            ]
+        });
+        
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
@@ -74,7 +87,7 @@ async function login(req, res, next) {
             { expiresIn: '7d' }
         );
 
-        logger.info(`User logged in: ${username}`);
+        logger.info(`User logged in: ${user.username}`);
         res.json({
             message: 'Login successful',
             token,

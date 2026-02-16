@@ -22,15 +22,17 @@
 
       <form id="register-form" class="auth-form">
         <div class="form-group">
-          <label class="form-group__label" for="name">Full name</label>
+          <label class="form-group__label" for="username">Username</label>
           <input 
             type="text" 
-            id="name" 
+            id="username" 
             class="input" 
-            placeholder="John Doe"
+            placeholder="Choose a username"
             required
-            autocomplete="name"
+            autocomplete="username"
+            minlength="3"
           >
+          <p class="form-group__hint">Must be at least 3 characters</p>
         </div>
 
         <div class="form-group">
@@ -94,19 +96,24 @@
       window.location.href = '/dashboard.html';
     }
 
-    // Form submission
+      // Form submission
     document.getElementById('register-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
-      const name = document.getElementById('name').value.trim();
+      const username = document.getElementById('username').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirm-password').value;
       const registerBtn = document.getElementById('register-btn');
       
       // Validation
-      if (!name || !email || !password || !confirmPassword) {
+      if (!username || !email || !password || !confirmPassword) {
         showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      if (username.length < 3) {
+        showToast('Username must be at least 3 characters', 'error');
         return;
       }
 
@@ -124,11 +131,22 @@
       registerBtn.textContent = 'Creating account...';
 
       try {
-        // Note: Backend uses username, we'll use email as username
-        // Store name in localStorage for display purposes
-        const data = await WikiAPI.register(email, password, 'editor');
-        WikiAPI.saveAuth(data.token, { ...data.user, name, email });
-        localStorage.setItem('wiki_user_name', name);
+        // Register with both username and email
+        const data = await WikiAPI.register(username, password, 'editor');
+        // Update registration to include email in the request body
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, role: 'editor' })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Registration failed');
+        }
+        
+        const responseData = await response.json();
+        WikiAPI.saveAuth(responseData.token, { ...responseData.user, email });
         showToast('Account created successfully!', 'success');
         
         // Redirect to dashboard

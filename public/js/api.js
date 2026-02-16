@@ -44,6 +44,7 @@ function clearAuth() {
  */
 async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE}${endpoint}`;
+    console.log(`[API] Fetching: ${url}`, options.method || 'GET');
     const token = getToken();
 
     const headers = {
@@ -56,6 +57,7 @@ async function apiRequest(endpoint, options = {}) {
         ...options,
         headers,
     });
+    console.log(`[API] Response: ${url}`, response.status);
 
     const data = await response.json().catch(() => ({}));
 
@@ -125,10 +127,10 @@ async function removeAccess(articleId, userId) {
 
 // ---------- Auth API ----------
 
-async function register(username, password, role) {
+async function register(username, password, role, email) {
     return apiRequest('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, password, role }),
+        body: JSON.stringify({ username, password, role, email }),
     });
 }
 

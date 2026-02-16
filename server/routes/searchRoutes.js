@@ -6,9 +6,11 @@
 const express = require('express');
 const articleController = require('../controllers/articleController');
 
+const { authenticate } = require('../middleware/authMiddleware');
+
 const router = express.Router();
 
 // GET /api/search?q=keyword
-router.get('/', articleController.searchArticles);
+router.get('/', authenticate, articleController.searchArticles);
 
 module.exports = router;

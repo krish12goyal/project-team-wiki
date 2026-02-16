@@ -58,6 +58,12 @@ const articleSchema = new mongoose.Schema(
         },
       },
     ],
+    // Primary content storage in MongoDB
+    content: {
+      type: String,
+      default: '',
+      trim: true
+    },
   },
   {
     // Automatically manage createdAt and updatedAt

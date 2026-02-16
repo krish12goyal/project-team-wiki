@@ -37,6 +37,11 @@ function checkPermission(article, user, requiredRole) {
         return 'owner';
     }
 
+    // Fallback: Check if user is the author (for legacy articles without owner field)
+    if (!article.owner && article.author === user.username) {
+        return 'owner';
+    }
+
     // 2. Check shared list
     const shareEntry = article.sharedWith.find(s => s.user.toString() === userId);
 
@@ -64,34 +69,33 @@ async function safeAutoCommit(message) {
     try {
         await gitService.autoCommit(message);
     } catch (err) {
-        logger.error(`Auto-commit failed for: "${message}"`, { error: err.message });
+        logger.error(`GIT DESYNC WARNING: Auto-commit failed for: "${message}"`, {
+            error: err.message,
+            timestamp: new Date().toISOString(),
+            recommendation: 'Manual reconciliation required if using Git for production auditing.'
+        });
         // We do not throw here to avoid failing the HTTP request 
         // if the DB/File write was successful.
     }
 }
 
-/**
- * Create a new article.
- * @param {Object} data - { title, content, tags, author, slug? }
- * @param {Object} user - The creating user (req.user)
- * @returns {Promise<Object>} Created article with content
- */
 async function createArticle(data, user) {
     if (!user) throwForbidden('User required to create article');
 
     // Auto-generate slug from title if not provided
     const slug = data.slug || slugify(data.title, { lower: true, strict: true });
 
-    // Save metadata to MongoDB
+    // Save metadata and content to MongoDB
     const article = await Article.create({
         title: data.title,
         slug,
         tags: data.tags || [],
         author: data.author, // Display name
-        owner: user.id // Set owner
+        owner: user.id, // Set owner
+        content: data.content || '' // Store content in DB
     });
 
-    // Write content to .md file
+    // Write content to .md file (Git/Fallback)
     await fileService.writeArticle(slug, data.content || '');
 
     // Auto-commit to Git
@@ -142,11 +146,15 @@ async function getArticleById(id, user) {
     // Check permission
     const perm = checkPermission(article, user, 'viewer');
 
-    let content = '';
-    try {
-        content = await fileService.readArticle(article.slug);
-    } catch (err) {
-        logger.warn(`Could not read file for slug ${article.slug}: ${err.message}`);
+    let content = article.content || '';
+
+    // Fallback to file system if content is empty in DB (for old articles)
+    if (!content) {
+        try {
+            content = await fileService.readArticle(article.slug);
+        } catch (err) {
+            logger.warn(`Could not read file for slug ${article.slug}: ${err.message}`);
+        }
     }
 
     // Return with effective permission for UI usage
@@ -188,10 +196,11 @@ async function updateArticle(id, data, user) {
     }
     if (data.tags !== undefined) article.tags = data.tags;
 
-    // 3. Save to MongoDB
+    // 3. Save to MongoDB (Metadata + Content)
+    if (data.content !== undefined) article.content = data.content;
     await article.save();
 
-    // 4. Write updated content to file system
+    // 4. Write updated content to file system (Git/Fallback)
     if (data.content !== undefined) {
         await fileService.writeArticle(article.slug, data.content);
     }

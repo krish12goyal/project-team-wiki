@@ -22,14 +22,14 @@
 
       <form id="login-form" class="auth-form">
         <div class="form-group">
-          <label class="form-group__label" for="email">Email address</label>
+          <label class="form-group__label" for="email">Username or Email</label>
           <input 
-            type="email" 
+            type="text" 
             id="email" 
             class="input" 
-            placeholder="you@example.com"
+            placeholder="Enter username or email"
             required
-            autocomplete="email"
+            autocomplete="username"
           >
         </div>
 
@@ -93,8 +93,7 @@
       loginBtn.textContent = 'Signing in...';
 
       try {
-        // Note: Backend uses username, but we accept email in UI
-        // We'll use email as username for now
+        // Backend now accepts both username and email
         const data = await WikiAPI.login(email, password);
         WikiAPI.saveAuth(data.token, data.user);
         showToast('Welcome back!', 'success');

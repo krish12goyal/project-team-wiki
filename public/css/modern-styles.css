@@ -405,6 +405,7 @@ img {
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn:disabled {
@@ -419,6 +420,7 @@ img {
 
 .btn--primary:hover:not(:disabled) {
   background-color: var(--primary-700);
+  color: white;
 }
 
 .btn--secondary {
