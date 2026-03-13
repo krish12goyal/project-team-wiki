@@ -42,7 +42,7 @@ function clearAuth() {
  * @param {Object} options - fetch options
  * @returns {Promise<Object>} parsed JSON response
  */
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest(endpoint, options = {}, _isRetry = false) {
     const url = `${API_BASE}${endpoint}`;
     console.log(`[API] Fetching: ${url}`, options.method || 'GET');
     const token = getToken();
@@ -59,6 +59,20 @@ async function apiRequest(endpoint, options = {}) {
     });
     console.log(`[API] Response: ${url}`, response.status);
 
+    // If 401 and we haven't already retried, try to refresh the token
+    if (response.status === 401 && !_isRetry && token) {
+        console.log('[API] Token expired, attempting refresh...');
+        const refreshed = await _tryRefreshToken(token);
+        if (refreshed) {
+            // Retry the original request with the new token
+            return apiRequest(endpoint, options, true);
+        }
+        // Refresh failed — redirect to login
+        clearAuth();
+        window.location.href = '/login.html';
+        throw new Error('Session expired. Redirecting to login...');
+    }
+
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
@@ -66,6 +80,36 @@ async function apiRequest(endpoint, options = {}) {
     }
 
     return data;
+}
+
+/**
+ * Attempt to refresh an expired JWT token.
+ * @param {string} expiredToken - The expired token
+ * @returns {Promise<boolean>} true if refresh succeeded
+ */
+async function _tryRefreshToken(expiredToken) {
+    try {
+        const response = await fetch(`${API_BASE}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${expiredToken}`,
+            },
+        });
+
+        if (!response.ok) return false;
+
+        const data = await response.json();
+        if (data.token && data.user) {
+            saveAuth(data.token, data.user);
+            console.log('[API] Token refreshed successfully');
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.warn('[API] Token refresh failed:', err.message);
+        return false;
+    }
 }
 
 // ---------- Article API ----------

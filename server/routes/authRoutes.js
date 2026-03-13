@@ -37,4 +37,7 @@ router.post('/register', authLimiter, registerValidation, authController.registe
 // POST /api/auth/login
 router.post('/login', authLimiter, loginValidation, authController.login);
 
+// POST /api/auth/refresh
+router.post('/refresh', authController.refresh);
+
 module.exports = router;

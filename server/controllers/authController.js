@@ -98,4 +98,49 @@ async function login(req, res, next) {
     }
 }
 
-module.exports = { register, login };
+/**
+ * POST /api/auth/refresh — Refresh an expired JWT token
+ * Decodes the expired token, verifies the user still exists, and issues a new token.
+ */
+async function refresh(req, res, next) {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'No token provided.' });
+        }
+
+        const oldToken = authHeader.split(' ')[1];
+
+        // Decode even if expired — we just need the user id
+        let decoded;
+        try {
+            decoded = jwt.verify(oldToken, process.env.JWT_SECRET, { ignoreExpiration: true });
+        } catch (err) {
+            return res.status(401).json({ error: 'Invalid token.' });
+        }
+
+        // Make sure the user still exists in the database
+        const user = await User.findById(decoded.id).select('-password');
+        if (!user) {
+            return res.status(401).json({ error: 'User no longer exists.' });
+        }
+
+        // Issue a fresh token
+        const newToken = jwt.sign(
+            { id: user._id, username: user.username, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        logger.info(`Token refreshed for user: ${user.username}`);
+        res.json({
+            message: 'Token refreshed',
+            token: newToken,
+            user: { id: user._id, username: user.username, role: user.role },
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { register, login, refresh };
