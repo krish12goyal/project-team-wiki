@@ -15,6 +15,7 @@ async function migrateArticleOwners() {
     if (!systemUser) {
         systemUser = await User.create({
             username: 'system_admin',
+            email: 'system_admin@wiki.local',
             password: 'complex_password_placeholder_' + Date.now(), // Random password, no one logs in
             role: 'editor'
         });

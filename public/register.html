@@ -131,22 +131,10 @@
       registerBtn.textContent = 'Creating account...';
 
       try {
-        // Register with both username and email
-        const data = await WikiAPI.register(username, password, 'editor');
-        // Update registration to include email in the request body
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password, role: 'editor' })
-        });
+        // Register with username, password, role, and email
+        const data = await WikiAPI.register(username, password, 'editor', email);
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Registration failed');
-        }
-        
-        const responseData = await response.json();
-        WikiAPI.saveAuth(responseData.token, { ...responseData.user, email });
+        WikiAPI.saveAuth(data.token, { ...data.user, email });
         showToast('Account created successfully!', 'success');
         
         // Redirect to dashboard
