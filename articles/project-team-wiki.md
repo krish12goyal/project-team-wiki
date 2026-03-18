@@ -1,4 +1,0 @@
-every member should take care of their work properly and ensure everything before further going ...
----
-**Hello Guyss**
----
