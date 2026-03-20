@@ -133,12 +133,12 @@ Open **http://localhost:3000** in your browser.
 
 ## 🧠 Environment Variables
 
-| Variable        | Default                                  | Description              |
-|-----------------|------------------------------------------|--------------------------|
-| `PORT`          | `3000`                                   | Server port              |
-| `MONGODB_URI`   | `mongodb://localhost:27017/team-wiki`    | MongoDB connection       |
-| `JWT_SECRET`    | `change_this_to_a_strong_random_secret`  | JWT signing key          |
-| `GIT_AUTO_PUSH` | `false`                                  | Push after each commit?  |
+| Variable        | Description              |
+|-----------------|--------------------------|
+| `PORT`          | Server port              |
+| `MONGODB_URI`   | MongoDB connection       |
+| `JWT_SECRET`    | JWT signing key          |
+| `GIT_AUTO_PUSH` | Push after each commit?  |
 
 ---
 
