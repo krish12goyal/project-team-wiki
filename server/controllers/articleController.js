@@ -47,17 +47,13 @@ async function getAllArticles(req, res, next) {
  */
 async function getArticle(req, res, next) {
     try {
-        console.log(`[DEBUG] Fetching article with ID: ${req.params.id}`);
         // Pass req.user for permission check
         const article = await articleService.getArticleById(req.params.id, req.user);
         if (!article) {
-            console.log(`[DEBUG] Article not found: ${req.params.id}`);
             return res.status(404).json({ error: 'Article not found' });
         }
-        console.log(`[DEBUG] Article found: ${article.title}`);
         res.json(article);
     } catch (err) {
-        console.error(`[DEBUG] Error in getArticle: ${err.message}`);
         next(err);
     }
 }

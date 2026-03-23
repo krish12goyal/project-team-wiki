@@ -113,6 +113,7 @@
               autocomplete="off">
           </div>
           <div class="flex gap-2">
+            <button class="btn btn--secondary btn--sm" id="toggle-preview-btn">Preview: ON</button>
             <a href="#" class="btn btn--secondary btn--sm" id="view-btn">View</a>
             <span id="save-status"
               style="font-size: 0.875rem; color: var(--text-muted); display: flex; align-items: center;"></span>
@@ -145,6 +146,7 @@
             🔗
           </button>
           <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+            <div style="width: 1px; height: 22px; background: var(--border-light); margin-right: 8px;"></div>
             <label style="font-size: 0.875rem; color: var(--text-muted);">Tags:</label>
             <input type="text" class="input" id="article-tags" placeholder="Add tags (comma separated)"
               style="width: 200px; padding: 6px 10px; font-size: 0.8125rem;">
@@ -152,9 +154,20 @@
         </div>
 
         <!-- Editor Content -->
-        <div class="editor-content">
-          <textarea class="editor-textarea" id="article-content"
-            placeholder="Start writing your article here..."></textarea>
+        <div class="editor-content" style="display: flex; gap: 24px; height: calc(100vh - 220px);">
+          <!-- Left: Markdown Input -->
+          <div id="editor-pane" style="flex: 1; display: flex; flex-direction: column; border: 1px solid #dde2ef; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 8px -1px rgba(15, 23, 42, 0.10); min-width: 0; overflow: hidden;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #dde2ef; background: #edf1f7; border-radius: 12px 12px 0 0; font-weight: 600; font-size: 0.875rem; color: #475569; flex-shrink: 0;">Markdown Source</div>
+            <textarea class="editor-textarea" id="article-content"
+              placeholder="Start writing your article here..."></textarea>
+          </div>
+          <!-- Right: Live Preview -->
+          <div id="preview-pane" style="flex: 1; display: flex; flex-direction: column; border: 1px solid #dde2ef; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 8px -1px rgba(15, 23, 42, 0.10); min-width: 0;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #dde2ef; background: #edf1f7; border-radius: 12px 12px 0 0; font-weight: 600; font-size: 0.875rem; color: #475569;">Live Preview</div>
+            <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px; min-width: 0;">
+              <div id="editor-preview" class="markdown-body" style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; min-width: 0;"></div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -166,6 +179,8 @@
   <!-- Scripts -->
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.0/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@14.1.0/marked.min.js"></script>
   <script>
     let articleId = null;
     let lastSavedContent = '';
@@ -191,6 +206,27 @@
       const saveBtn = document.getElementById('save-btn');
       const viewBtn = document.getElementById('view-btn');
       const saveStatus = document.getElementById('save-status');
+      const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+      const previewPane = document.getElementById('preview-pane');
+      const editorPreview = document.getElementById('editor-preview');
+
+      // Toggle Preview
+      let previewOn = true;
+      togglePreviewBtn.addEventListener('click', () => {
+        previewOn = !previewOn;
+        if (previewOn) {
+          previewPane.style.display = 'block';
+          togglePreviewBtn.textContent = 'Preview: ON';
+        } else {
+          previewPane.style.display = 'none';
+          togglePreviewBtn.textContent = 'Preview: OFF';
+        }
+      });
+
+      function renderPreview() {
+        if (!previewOn) return;
+        editorPreview.innerHTML = DOMPurify.sanitize(marked.parse(contentInput.value || ''));
+      }
 
       // Set view button link
       viewBtn.href = `/article.html?id=${articleId}`;
@@ -234,10 +270,9 @@
         console.error(err);
       }
 
-      // Auto-resize textarea
+      // Auto-resize textarea and live preview
       contentInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.max(500, this.scrollHeight) + 'px';
+        renderPreview();
 
         // Auto-save draft
         clearTimeout(autoSaveTimer);
@@ -251,6 +286,9 @@
           saveStatus.textContent = 'Draft saved locally';
         }, 2000);
       });
+
+      // Initial render
+      renderPreview();
 
       // Save article
       saveBtn.addEventListener('click', async () => {

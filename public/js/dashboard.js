@@ -30,6 +30,25 @@ function initSidebar() {
     if (!user) return;
     
     // Update user info in sidebar
+    updateSidebarUserInfo(user);
+    
+    const sidebar = document.getElementById('sidebar');
+    
+    if (sidebar) {
+        // Sidebar info and other init
+    }
+
+    // Initialize Mobile Drawer (Independent)
+    initMobileDrawer();
+    
+    // Logout functionality
+    initLogout();
+    
+    // Set active navigation link
+    setActiveNavLink();
+}
+
+function updateSidebarUserInfo(user) {
     const userNameEl = document.getElementById('user-name');
     const userRoleEl = document.getElementById('user-role');
     const userAvatarEl = document.getElementById('user-avatar');
@@ -40,37 +59,44 @@ function initSidebar() {
     }
     
     if (userRoleEl) {
-        const role = user.role || 'Editor';
-        userRoleEl.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+        userRoleEl.textContent = 'Team Member';
     }
     
     if (userAvatarEl) {
         const name = user.name || user.username || user.email || 'U';
         userAvatarEl.textContent = name.charAt(0).toUpperCase();
     }
-    
-    // Mobile menu toggle
+}
+
+function initMobileDrawer() {
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebar-overlay');
     
-    if (mobileMenuBtn && sidebar) {
+    if (mobileMenuBtn && sidebar && sidebarOverlay) {
         mobileMenuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-            if (sidebarOverlay) {
-                sidebarOverlay.classList.toggle('active');
-            }
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
         });
-    }
-    
-    if (sidebarOverlay) {
+        
         sidebarOverlay.addEventListener('click', () => {
             sidebar.classList.remove('open');
             sidebarOverlay.classList.remove('active');
         });
+
+        // Close when clicking a nav link on mobile
+        sidebar.querySelectorAll('.sidebar__link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('active');
+                }
+            });
+        });
     }
-    
-    // Logout functionality
+}
+
+function initLogout() {
     const logoutLink = document.getElementById('logout-link');
     if (logoutLink) {
         logoutLink.addEventListener('click', (e) => {
@@ -82,9 +108,6 @@ function initSidebar() {
             }
         });
     }
-    
-    // Set active navigation link
-    setActiveNavLink();
 }
 
 // Set active navigation link based on current page

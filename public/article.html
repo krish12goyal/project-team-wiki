@@ -193,9 +193,7 @@
     loadArticle();
 
     async function loadArticle() {
-      console.log('loadArticle started');
       articleId = new URLSearchParams(window.location.search).get('id');
-      console.log('Article ID from URL:', articleId);
 
       if (!articleId) {
         showToast('No article ID provided', 'error');
@@ -204,13 +202,10 @@
       }
 
       try {
-        console.log('Calling WikiAPI.getArticle...');
         const article = await WikiAPI.getArticle(articleId);
-        console.log('Article received:', article ? article.title : 'NULL');
         currentArticle = article;
         await renderArticle(article);
         renderHeaderActions(article);
-        console.log('loadArticle finished successfully');
       } catch (err) {
         showToast('Failed to load article', 'error');
         console.error('Error in loadArticle:', err);

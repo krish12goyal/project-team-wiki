@@ -46,6 +46,7 @@ function checkPermission(article, user, requiredRole) {
     const shareEntry = article.sharedWith.find(s => s.user.toString() === userId);
 
     if (!shareEntry) {
+        logger.warn(`Unauthorized access attempt blocked: User ${user.username} has no access to article ${article.slug}`);
         throwForbidden('You do not have access to this article.');
     }
 
@@ -55,6 +56,7 @@ function checkPermission(article, user, requiredRole) {
     const requiredLevel = levels[requiredRole];
 
     if (!userLevel || userLevel < requiredLevel) {
+        logger.warn(`Unauthorized edit attempt blocked: User ${user.username} needs ${requiredRole} but has ${shareEntry.permission} for article ${article.slug}`);
         throwForbidden(`Insufficient permissions. Required: ${requiredRole}, Actual: ${shareEntry.permission}`);
     }
 
@@ -327,8 +329,11 @@ async function restoreArticle(id, commitHash, user) {
     // Read the restored content
     const content = await fileService.readArticle(article.slug);
 
-    // Auto-commit the restoration
-    await safeAutoCommit(`[system] Restored article: ${article.title} to commit ${commitHash.substring(0, 7)} (Triggered by ${user.username})`);
+    // Save restored content to DB
+    await Article.updateOne({ _id: article._id }, { $set: { content } });
+
+    // Auto-commit the restoration cleanly without overriding history
+    await safeAutoCommit(`[${user.username}] Restored article: ${article.title}`);
 
     logger.info(`Article restored: ${article.slug} to ${commitHash.substring(0, 7)} by ${user.username}`);
     return { ...article, content };

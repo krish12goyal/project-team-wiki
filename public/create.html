@@ -109,6 +109,7 @@
             >
           </div>
           <div class="flex gap-2">
+            <button class="btn btn--secondary btn--sm" id="toggle-preview-btn">Preview: ON</button>
             <span id="save-status" style="font-size: 0.875rem; color: var(--text-muted); display: flex; align-items: center;"></span>
             <button class="btn btn--secondary btn--sm" id="cancel-btn">Cancel</button>
             <button class="btn btn--primary btn--sm" id="save-btn">Save Article</button>
@@ -139,6 +140,7 @@
             🔗
           </button>
           <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+            <div style="width: 1px; height: 22px; background: var(--border-light); margin-right: 8px;"></div>
             <label style="font-size: 0.875rem; color: var(--text-muted);">Tags:</label>
             <input 
               type="text" 
@@ -151,21 +153,20 @@
         </div>
 
         <!-- Editor Content -->
-        <div class="editor-content">
-          <textarea 
-            class="editor-textarea" 
-            id="article-content" 
-            placeholder="Start writing your article here...
-
-You can use Markdown formatting:
-- **Bold** text with **asterisks**
-- *Italic* text with *asterisks*
-- # Headers with hash symbols
-- - List items with dashes
-- > Quotes with greater-than signs
-- `Inline code` with backticks
-- ```Code blocks``` with triple backticks"
-          ></textarea>
+        <div class="editor-content" style="display: flex; gap: 24px; height: calc(100vh - 220px);">
+          <!-- Left: Markdown Input -->
+          <div id="editor-pane" style="flex: 1; display: flex; flex-direction: column; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); min-width: 0;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; border-radius: 12px 12px 0 0; font-weight: 600; font-size: 0.875rem; color: #475569;">Markdown Source</div>
+            <textarea class="editor-textarea" id="article-content"
+              placeholder="Start writing your article here..." style="flex: 1; resize: none; border: none; outline: none; padding: 16px; background: transparent; font-family: monospace; font-size: 0.95rem; overflow-x: hidden; word-wrap: break-word; white-space: pre-wrap;"></textarea>
+          </div>
+          <!-- Right: Live Preview -->
+          <div id="preview-pane" style="flex: 1; display: flex; flex-direction: column; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); min-width: 0;">
+            <div style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; border-radius: 12px 12px 0 0; font-weight: 600; font-size: 0.875rem; color: #475569;">Live Preview</div>
+            <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px; min-width: 0;">
+              <div id="editor-preview" class="markdown-body" style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; min-width: 0;"></div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -192,11 +193,31 @@ You can use Markdown formatting:
       const saveBtn = document.getElementById('save-btn');
       const cancelBtn = document.getElementById('cancel-btn');
       const saveStatus = document.getElementById('save-status');
+      const togglePreviewBtn = document.getElementById('toggle-preview-btn');
+      const previewPane = document.getElementById('preview-pane');
+      const editorPreview = document.getElementById('editor-preview');
 
-      // Auto-resize textarea
+      // Toggle Preview
+      let previewOn = true;
+      togglePreviewBtn.addEventListener('click', () => {
+        previewOn = !previewOn;
+        if (previewOn) {
+          previewPane.style.display = 'block';
+          togglePreviewBtn.textContent = 'Preview: ON';
+        } else {
+          previewPane.style.display = 'none';
+          togglePreviewBtn.textContent = 'Preview: OFF';
+        }
+      });
+
+      function renderPreview() {
+        if (!previewOn) return;
+        editorPreview.innerHTML = DOMPurify.sanitize(marked.parse(contentInput.value || ''));
+      }
+
+      // Auto-resize textarea & live preview
       contentInput.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.max(500, this.scrollHeight) + 'px';
+        renderPreview();
       });
 
       // Save article
@@ -286,6 +307,9 @@ You can use Markdown formatting:
           clearOfflineDraft();
         }
       }
+
+      // Render initial preview
+      renderPreview();
 
       // Focus title on load
       titleInput.focus();

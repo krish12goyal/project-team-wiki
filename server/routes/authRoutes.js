@@ -24,7 +24,6 @@ const registerValidation = [
     body('username').notEmpty().withMessage('Username is required').trim().isLength({ min: 3 }),
     body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
     body('password').notEmpty().withMessage('Password is required').isLength({ min: 6 }),
-    body('role').optional().isIn(['editor', 'viewer']).withMessage('Role must be editor or viewer'),
 ];
 
 const loginValidation = [

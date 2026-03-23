@@ -37,7 +37,7 @@ const articleSchema = new mongoose.Schema(
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      // required: true, // TODO: Enable after migration
+      required: true,
     },
     // List of users with shared access
     sharedWith: [

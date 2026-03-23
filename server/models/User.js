@@ -28,11 +28,10 @@ const userSchema = new mongoose.Schema(
             required: [true, 'Password is required'],
             minlength: 6,
         },
-        // Role determines write access: 'editor' can create/edit/delete, 'viewer' is read-only
-        role: {
-            type: String,
-            enum: ['editor', 'viewer'],
-            default: 'editor',
+        // Soft delete flag: if false, user cannot login or access content
+        isActive: {
+            type: Boolean,
+            default: true,
         },
     },
     { timestamps: true }

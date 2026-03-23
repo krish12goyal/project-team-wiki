@@ -6,7 +6,7 @@
 const express = require('express');
 const { body } = require('express-validator');
 const articleController = require('../controllers/articleController');
-const { authenticate, authorize } = require('../middleware/authMiddleware');
+const { authenticate } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
@@ -36,19 +36,19 @@ router.get('/:id/history', authenticate, articleController.getHistory);
 // GET /api/search — Search articles
 router.get('/search', authenticate, articleController.searchArticles);
 
-// --- Protected routes (require authentication + editor role) ---
+// --- Protected routes (require authentication + permission handled in service) ---
 
 // POST /api/articles — Create article
-router.post('/', authenticate, authorize('editor'), articleValidation, articleController.createArticle);
+router.post('/', authenticate, articleValidation, articleController.createArticle);
 
 // PUT /api/articles/:id — Update article
-router.put('/:id', authenticate, authorize('editor'), updateValidation, articleController.updateArticle);
+router.put('/:id', authenticate, updateValidation, articleController.updateArticle);
 
 // DELETE /api/articles/:id — Delete article
-router.delete('/:id', authenticate, authorize('editor'), articleController.deleteArticle);
+router.delete('/:id', authenticate, articleController.deleteArticle);
 
 // POST /api/articles/:id/restore — Restore version
-router.post('/:id/restore', authenticate, authorize('editor'), articleController.restoreVersion);
+router.post('/:id/restore', authenticate, articleController.restoreVersion);
 
 // POST /api/articles/:id/share — Share article (Owner only - checked in service)
 router.post('/:id/share', authenticate, articleController.shareArticle);

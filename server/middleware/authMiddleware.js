@@ -4,13 +4,14 @@
  */
 
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const logger = require('../utils/logger');
 
 /**
  * Verify JWT token from Authorization header.
- * Attaches decoded user to req.user.
+ * Attaches fresh user to req.user after checking active state.
  */
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
     const authHeader = req.headers.authorization;
 
     // No token provided -> 401
@@ -21,7 +22,18 @@ function authenticate(req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // { id, username, role }
+        
+        // Fetch user to ensure they are still active
+        const user = await User.findById(decoded.id).select('-password');
+        if (!user) {
+            return res.status(401).json({ error: 'User no longer exists.' });
+        }
+
+        if (!user.isActive) {
+            return res.status(403).json({ error: 'User account is disabled.' });
+        }
+
+        req.user = { id: user._id, username: user.username };
         next();
     } catch (err) {
         logger.warn(`Invalid token attempt: ${err.message}`);
@@ -29,21 +41,4 @@ function authenticate(req, res, next) {
     }
 }
 
-/**
- * Require a specific role (or array of roles).
- * Must be used after authenticate middleware.
- * @param  {...string} roles - Allowed roles (e.g. 'editor')
- */
-function authorize(...roles) {
-    return (req, res, next) => {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Authentication required.' });
-        }
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ error: 'Insufficient permissions.' });
-        }
-        next();
-    };
-}
-
-module.exports = { authenticate, authorize };
+module.exports = { authenticate };

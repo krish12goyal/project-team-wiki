@@ -7,12 +7,12 @@
  * NOW ASYNC & CONCURRENCY SAFE.
  */
 
-const { exec } = require('child_process');
+const { execFile } = require('child_process');
 const util = require('util');
 const path = require('path');
 const logger = require('../utils/logger');
 
-const execAsync = util.promisify(exec);
+const execFileAsync = util.promisify(execFile);
 
 // Project root is two levels up from /server/services/
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -52,19 +52,19 @@ function isValidPath(filePath) {
 
 /**
  * Execute a git command safely (Async).
- * @param {string} command - Full git command string
+ * @param {string[]} args - git arguments (e.g., ['commit', '-m', message])
  * @returns {Promise<string>} stdout output (trimmed)
  */
-async function execGit(command) {
+async function execGit(args) {
     try {
-        const { stdout } = await execAsync(command, {
+        const { stdout } = await execFileAsync('git', args, {
             cwd: PROJECT_ROOT,
             encoding: 'utf-8',
             timeout: 30000, // 30-second timeout
         });
         return stdout.trim();
     } catch (error) {
-        logger.error(`Git command failed: ${command}`, { error: error.message, stderr: error.stderr });
+        logger.error(`Git command failed: git ${args.join(' ')}`, { error: error.message, stderr: error.stderr });
         throw error; // Re-throw to let caller handle it
     }
 }
@@ -73,7 +73,7 @@ async function execGit(command) {
  * Stage all changes.
  */
 async function gitAdd() {
-    return execGit('git add .');
+    return execGit(['add', '.']);
 }
 
 /**
@@ -81,11 +81,9 @@ async function gitAdd() {
  * @param {string} message - Commit message
  */
 async function gitCommit(message) {
-    // Escape double quotes and backslashes in the message
-    const safeMsg = message.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     // Check if there are changes to commit first to avoid empty commit errors
     try {
-        await execGit(`git commit -m "${safeMsg}"`);
+        await execGit(['commit', '-m', message]);
     } catch (err) {
         if (err.stdout && err.stdout.includes('nothing to commit')) {
             logger.info('Nothing to commit, skipping.');
@@ -106,7 +104,7 @@ async function gitPush() {
         while (attempts < maxAttempts) {
             try {
                 logger.info(`Git push attempt ${attempts + 1}/${maxAttempts}`);
-                await execGit('git push');
+                await execGit(['push']);
                 logger.info('Git push successful');
                 return;
             } catch (err) {
@@ -151,9 +149,14 @@ async function gitLog(filePath, limit = 50) {
 
     const SEP = '|||';
     try {
-        const raw = await execGit(
-            `git log -n ${parseInt(limit)} --pretty=format:"%H${SEP}%ai${SEP}%s${SEP}%an" -- "${filePath}"`
-        );
+        const raw = await execGit([
+            'log', 
+            '-n', 
+            parseInt(limit).toString(), 
+            `--pretty=format:%H${SEP}%ai${SEP}%s${SEP}%an`, 
+            '--', 
+            filePath
+        ]);
 
         if (!raw) return [];
 
@@ -182,7 +185,7 @@ async function gitShow(commitHash, filePath) {
     if (!isValidPath(filePath)) {
         throw new Error('Invalid file path');
     }
-    return execGit(`git show ${commitHash}:"${filePath}"`);
+    return execGit(['show', `${commitHash}:${filePath}`]);
 }
 
 /**
@@ -199,7 +202,7 @@ async function gitRestore(commitHash, filePath) {
     }
     // We use the mutex here too to avoid conflicts with ongoing commits
     return gitMutex.lock(async () => {
-        await execGit(`git checkout ${commitHash} -- "${filePath}"`);
+        await execGit(['checkout', commitHash, '--', filePath]);
     });
 }
 

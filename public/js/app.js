@@ -62,7 +62,7 @@ function updateNavAuth() {
 
     if (user) {
         authArea.innerHTML = `
-      <span class="navbar__username">${user.username} (${user.role})</span>
+      <span class="navbar__username">${user.username}</span>
       <button class="btn btn--sm btn--secondary" id="logout-btn">Logout</button>
     `;
         document.getElementById('logout-btn').addEventListener('click', () => {
@@ -145,10 +145,9 @@ function initAuthModal() {
         regSubmit.addEventListener('click', async () => {
             const username = document.getElementById('reg-username').value.trim();
             const password = document.getElementById('reg-password').value;
-            const role = document.getElementById('reg-role').value;
             if (!username || !password) return showToast('Fill in all fields', 'error');
             try {
-                const data = await WikiAPI.register(username, password, role);
+                const data = await WikiAPI.register(username, password);
                 WikiAPI.saveAuth(data.token, data.user);
                 hideAuthModal();
                 showToast(`Account created. Welcome, ${data.user.username}!`, 'success');
@@ -600,8 +599,7 @@ async function initHistory() {
             return;
         }
 
-        const user = WikiAPI.getUser();
-        const isEditor = user && user.role === 'editor';
+        const isEditor = article && (article.currentUserPermission === 'editor' || article.currentUserPermission === 'owner');
 
         timeline.innerHTML = history.map((entry) => `
       <div class="timeline__item">

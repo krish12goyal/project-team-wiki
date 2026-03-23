@@ -110,7 +110,7 @@
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 6px;">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
-            New Article
+            <span>New Article</span>
           </a>
         </div>
       </header>
@@ -191,15 +191,9 @@
       }
       
       grid.innerHTML = articles.map(article => {
-        // Determine user's role for this article
         const user = WikiAPI.getUser();
-        let role = 'Viewer';
-        let roleClass = 'badge--viewer';
-        
-        if (article.currentUserPermission === 'editor') {
-          role = 'Editor';
-          roleClass = 'badge--editor';
-        }
+        const role = getUserRoleForArticle(article, user);
+        const roleClass = getRoleBadgeClass(role);
         
         return `
           <div class="card">

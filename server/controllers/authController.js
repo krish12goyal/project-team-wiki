@@ -18,7 +18,7 @@ async function register(req, res, next) {
             return res.status(400).json({ error: 'Validation failed', details: errors.array() });
         }
 
-        const { username, email, password, role } = req.body;
+        const { username, email, password } = req.body;
 
         // Check if username already exists
         const existingUsername = await User.findOne({ username });
@@ -32,20 +32,20 @@ async function register(req, res, next) {
             return res.status(409).json({ error: 'Email already registered' });
         }
 
-        const user = await User.create({ username, email: email.toLowerCase(), password, role: role || 'editor' });
+        const user = await User.create({ username, email: email.toLowerCase(), password });
 
         // Generate JWT
         const token = jwt.sign(
-            { id: user._id, username: user.username, role: user.role },
+            { id: user._id, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
 
-        logger.info(`User registered: ${username} (${user.role})`);
+        logger.info(`User registered: ${username}`);
         res.status(201).json({
             message: 'User registered',
             token,
-            user: { id: user._id, username: user.username, role: user.role },
+            user: { id: user._id, username: user.username },
         });
     } catch (err) {
         next(err);
@@ -76,13 +76,17 @@ async function login(req, res, next) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
+        if (!user.isActive) {
+            return res.status(403).json({ error: 'User account is disabled' });
+        }
+
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const token = jwt.sign(
-            { id: user._id, username: user.username, role: user.role },
+            { id: user._id, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -91,7 +95,7 @@ async function login(req, res, next) {
         res.json({
             message: 'Login successful',
             token,
-            user: { id: user._id, username: user.username, role: user.role },
+            user: { id: user._id, username: user.username },
         });
     } catch (err) {
         next(err);
@@ -125,9 +129,13 @@ async function refresh(req, res, next) {
             return res.status(401).json({ error: 'User no longer exists.' });
         }
 
+        if (!user.isActive) {
+            return res.status(403).json({ error: 'User account is disabled' });
+        }
+
         // Issue a fresh token
         const newToken = jwt.sign(
-            { id: user._id, username: user.username, role: user.role },
+            { id: user._id, username: user.username },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -136,7 +144,7 @@ async function refresh(req, res, next) {
         res.json({
             message: 'Token refreshed',
             token: newToken,
-            user: { id: user._id, username: user.username, role: user.role },
+            user: { id: user._id, username: user.username },
         });
     } catch (err) {
         next(err);

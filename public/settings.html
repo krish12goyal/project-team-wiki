@@ -187,7 +187,7 @@
 
       // Fill profile info
       document.getElementById('profile-username').value = user.username || user.email || '';
-      document.getElementById('profile-role').value = (user.role || 'Editor').charAt(0).toUpperCase() + (user.role || 'Editor').slice(1);
+      document.getElementById('profile-role').value = 'Team Member';
       document.getElementById('profile-name').value = localStorage.getItem('wiki_user_name') || user.name || '';
 
       // Save profile button

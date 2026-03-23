@@ -235,9 +235,8 @@
 
           resultsContainer.innerHTML = articles.map(article => {
             const user = WikiAPI.getUser();
-            const isOwner = article.owner === user?.id || article.author === user?.username;
-            const role = isOwner ? 'Owner' : (article.currentUserPermission === 'editor' ? 'Editor' : 'Viewer');
-            const roleClass = role === 'Owner' ? 'badge--owner' : (role === 'Editor' ? 'badge--editor' : 'badge--viewer');
+            const role = getUserRoleForArticle(article, user);
+            const roleClass = getRoleBadgeClass(role);
 
             return `
               <a href="/article.html?id=${article._id}" class="card card--clickable" style="text-decoration: none; color: inherit;">

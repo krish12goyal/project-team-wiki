@@ -44,7 +44,6 @@ function clearAuth() {
  */
 async function apiRequest(endpoint, options = {}, _isRetry = false) {
     const url = `${API_BASE}${endpoint}`;
-    console.log(`[API] Fetching: ${url}`, options.method || 'GET');
     const token = getToken();
 
     const headers = {
@@ -57,11 +56,9 @@ async function apiRequest(endpoint, options = {}, _isRetry = false) {
         ...options,
         headers,
     });
-    console.log(`[API] Response: ${url}`, response.status);
 
     // If 401 and we haven't already retried, try to refresh the token
     if (response.status === 401 && !_isRetry && token) {
-        console.log('[API] Token expired, attempting refresh...');
         const refreshed = await _tryRefreshToken(token);
         if (refreshed) {
             // Retry the original request with the new token
@@ -102,7 +99,6 @@ async function _tryRefreshToken(expiredToken) {
         const data = await response.json();
         if (data.token && data.user) {
             saveAuth(data.token, data.user);
-            console.log('[API] Token refreshed successfully');
             return true;
         }
         return false;
