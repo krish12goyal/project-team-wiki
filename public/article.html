@@ -215,7 +215,8 @@
     async function renderArticle(article) {
       const container = document.getElementById('article-container');
       const user = WikiAPI.getUser();
-      const role = getUserRoleForArticle(article, user);
+      const rawRole = article.currentPermission || 'viewer';
+      const role = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
 
       // Render markdown content
       let contentHtml = '';
@@ -270,7 +271,8 @@
     function renderHeaderActions(article) {
       const container = document.getElementById('header-actions');
       const user = WikiAPI.getUser();
-      const role = getUserRoleForArticle(article, user);
+      const rawRole = article.currentPermission || 'viewer';
+      const role = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
       const isOwner = role === 'Owner';
       const canEdit = role === 'Owner' || role === 'Editor';
 

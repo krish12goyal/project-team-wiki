@@ -160,7 +160,7 @@ async function getArticleById(id, user) {
     }
 
     // Return with effective permission for UI usage
-    return { ...article, content, currentUserPermission: perm };
+    return { ...article, content, currentPermission: perm };
 }
 
 /**
