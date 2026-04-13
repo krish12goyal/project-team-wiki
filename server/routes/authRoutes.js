@@ -2,7 +2,6 @@
  * Auth Routes
  * Handles user registration and login with rate limiting.
  */
-
 const express = require('express');
 const { body } = require('express-validator');
 const rateLimit = require('express-rate-limit');
