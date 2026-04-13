@@ -2,7 +2,6 @@
  * User Model
  * Mongoose schema for authentication and role-based access control.
  */
-
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
