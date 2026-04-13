@@ -78,3 +78,4 @@ articleSchema.index({ 'sharedWith.user': 1 });
 articleSchema.index({ owner: 1 });
 
 module.exports = mongoose.model('Article', articleSchema);
+
