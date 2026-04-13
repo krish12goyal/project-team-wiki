@@ -2,7 +2,6 @@
  * Auth Middleware
  * JWT verification and role-based access control.
  */
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const logger = require('../utils/logger');
