@@ -1,3 +1,0 @@
-# TEAM - WIKI
-
-**KRISH GOYAL**
