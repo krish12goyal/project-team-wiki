@@ -12,7 +12,6 @@ const path = require('path');
 const fs = require('fs');
 
 const logger = require('./server/utils/logger');
-// Corrected middleware import paths
 const errorHandler = require('./server/middleware/errorHandler');
 const articleRoutes = require('./server/routes/articleRoutes');
 const authRoutes = require('./server/routes/authRoutes');
@@ -39,22 +38,20 @@ app.use((req, _res, next) => {
     next();
 });
 
-// --------------- Static Files ---------------
-
-// Serve the frontend from /public
-app.use(express.static(path.join(__dirname, 'public')));
-
-// --------------- API Routes ---------------
+// --------------- API Routes (MUST come before static files) ---------------
 
 app.use('/api/articles', articleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/search', searchRoutes);
 
-// --------------- SPA-style HTML routes ---------------
+// --------------- Static Files ---------------
+
+// Serve the frontend from /public
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve specific HTML pages for frontend navigation
 const publicDir = path.join(__dirname, 'public');
-const htmlPages = ['editor', 'article', 'history'];
+const htmlPages = ['editor', 'article', 'history', 'dashboard', 'login', 'register', 'create', 'my-articles', 'search', 'settings', 'shared'];
 htmlPages.forEach((page) => {
     app.get(`/${page}`, (_req, res) => {
         res.sendFile(path.join(publicDir, `${page}.html`));
