@@ -133,6 +133,7 @@ async function refresh(req, res, next) {
             return res.status(403).json({ error: 'User account is disabled' });
         }
 
+        
         // Issue a fresh token
         const newToken = jwt.sign(
             { id: user._id, username: user.username },
