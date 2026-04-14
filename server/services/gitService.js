@@ -6,12 +6,13 @@
  * NOW ASYNC & CONCURRENCY SAFE.
  */
 
-const { execFile } = require('child_process');
+const { execFile, exec } = require('child_process');
 const util = require('util');
 const path = require('path');
 const logger = require('../utils/logger');
 
 const execFileAsync = util.promisify(execFile);
+const execAsync = util.promisify(exec);
 
 // Project root is two levels up from /server/services/
 const PROJECT_ROOT = path.resolve(__dirname, '../../');
@@ -121,6 +122,18 @@ async function gitPush() {
 }
 
 /**
+ * Execute the shell script to rebuild articles/index.json index
+ */
+async function generateIndexCache() {
+    try {
+        await execAsync('bash generate_index.sh', { cwd: PROJECT_ROOT, windowsHide: true });
+        logger.info('Successfully built articles/index.json JSON cache.');
+    } catch (err) {
+        logger.warn(`Failed to execute generate_index.sh: ${err.message}`);
+    }
+}
+
+/**
  * Perform add + commit + optional push in one call, serialized via Mutex.
  * @param {string} message - Commit message
  */
@@ -130,6 +143,7 @@ async function autoCommit(message) {
         await gitAdd();
         await gitCommit(message);
         await gitPush();
+        await generateIndexCache(); // Synchronize JSON backup cache post-commit
         logger.info('Auto-commit completed successfully.');
     });
 }
