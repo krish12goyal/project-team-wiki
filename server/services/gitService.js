@@ -2,7 +2,6 @@
  * Git Service
  * Wraps git CLI commands via child_process.
  * All commands run in the project root directory.
- * Git failures are logged but never crash the server.
  * 
  * NOW ASYNC & CONCURRENCY SAFE.
  */
