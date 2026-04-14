@@ -33,9 +33,6 @@ router.get('/:id', authenticate, articleController.getArticle);
 // GET /api/articles/:id/history — Version history
 router.get('/:id/history', authenticate, articleController.getHistory);
 
-// GET /api/search — Search articles
-router.get('/search', authenticate, articleController.searchArticles);
-
 // --- Protected routes (require authentication + permission handled in service) ---
 
 // POST /api/articles — Create article
@@ -57,3 +54,4 @@ router.post('/:id/share', authenticate, articleController.shareArticle);
 router.delete('/:id/share/:userId', authenticate, articleController.removeAccess);
 
 module.exports = router;
+
