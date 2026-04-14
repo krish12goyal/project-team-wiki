@@ -50,3 +50,4 @@ async function migrateArticleOwners() {
 }
 
 module.exports = { migrateArticleOwners };
+
