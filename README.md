@@ -16,6 +16,17 @@ A full-stack collaborative team wiki with **Git-based version control**, **Mongo
 
 ---
 
+## 🧠 System Architecture & Core Logic
+
+This project implements several advanced backend engineering concepts to solve complex synchronization and concurrency problems:
+
+1. **Tri-Layer Storage Architecture**: Data writes are orchestrated across three independent layers in strict execution order: **MongoDB** (fast metadata/search) → **File System** (flat `.md` format) → **Git Repository** (version history). Incorporates automatic read-fallback healing if database content drops.
+2. **Promise-Based Git Mutex Queue**: Solves NodeJS concurrency execution issues. If multiple users execute saves simultaneously, a Mutex class forces asynchronous Git transactions (`git add`, `git commit`) into safe, sequential promise chains to completely prevent fatal `.git/index.lock` corruption.
+3. **Graceful Offline Degradation**: A robust error-boundary catches `fetch` failures. It intercepts unsaved editor documents, serializes them into `localStorage` drafts, and registers a background `window.online` DOM listener to automatically flush and mathematically synchronize the trapped drafts the moment Wi-Fi reconnects.
+4. **Synchronous Permission Funnel**: Strict role-based backend authorization utilizing hierarchical Integer Math evaluation (`Viewer=1`, `Editor=2`, `Owner=3`) to deflect all malicious API manipulation, keeping the database perfectly safe regardless of hijacked frontend DOM logic.
+
+---
+
 ## 📂 Project Structure
 
 ```
