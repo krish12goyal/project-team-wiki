@@ -14,3 +14,4 @@ const router = express.Router();
 router.get('/', authenticate, articleController.searchArticles);
 
 module.exports = router;
+
