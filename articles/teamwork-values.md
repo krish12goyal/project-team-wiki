@@ -1,1 +1,1 @@
-New
+New user/article
