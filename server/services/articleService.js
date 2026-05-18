@@ -100,9 +100,9 @@ async function createArticle(data, user) {
     // Write content to .md file (Git/Fallback)
     await fileService.writeArticle(slug, data.content || '');
 
-    // Auto-commit to Git
+    // Auto-commit to Git (fire-and-forget — do NOT await, so HTTP response is not blocked)
     const authorName = data.author || 'system';
-    await safeAutoCommit(`[${authorName}] Created article: ${data.title}`);
+    safeAutoCommit(`[${authorName}] Created article: ${data.title}`);
 
     logger.info(`Article created: ${slug} by ${user.username}`);
     return { ...article.toObject(), content: data.content || '' };
@@ -207,10 +207,10 @@ async function updateArticle(id, data, user) {
         await fileService.writeArticle(article.slug, data.content);
     }
 
-    // 5. Auto-commit with ACTUAL user attribution
+    // 5. Auto-commit with ACTUAL user attribution (fire-and-forget — do NOT await)
     // This happens LAST. If it fails, we log and retry/ignore, but DB/File are already updated.
     const authorName = user.username || 'anonymous';
-    await safeAutoCommit(`[${authorName}] Updated article: ${article.title}`);
+    safeAutoCommit(`[${authorName}] Updated article: ${article.title}`);
 
     logger.info(`Article updated: ${article.slug} by ${user.username}`);
     return { ...article.toObject(), content: data.content };
@@ -239,8 +239,8 @@ async function deleteArticle(id, user) {
         logger.warn(`Could not delete file for slug ${article.slug}: ${err.message}`);
     }
 
-    // Auto-commit
-    await safeAutoCommit(`[system] Deleted article: ${article.title} (Triggered by ${user.username})`);
+    // Auto-commit (fire-and-forget — do NOT await)
+    safeAutoCommit(`[system] Deleted article: ${article.title} (Triggered by ${user.username})`);
 
     logger.info(`Article deleted: ${article.slug} by ${user.username}`);
     return article;
@@ -332,8 +332,8 @@ async function restoreArticle(id, commitHash, user) {
     // Save restored content to DB
     await Article.updateOne({ _id: article._id }, { $set: { content } });
 
-    // Auto-commit the restoration cleanly without overriding history
-    await safeAutoCommit(`[${user.username}] Restored article: ${article.title}`);
+    // Auto-commit the restoration cleanly without overriding history (fire-and-forget — do NOT await)
+    safeAutoCommit(`[${user.username}] Restored article: ${article.title}`);
 
     logger.info(`Article restored: ${article.slug} to ${commitHash.substring(0, 7)} by ${user.username}`);
     return { ...article, content };

@@ -1,1 +1,1 @@
-This is a project made by the team **Team Wiki**.
+This is a project made by the team **Team Wiki**
