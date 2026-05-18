@@ -1,1 +1,1 @@
-New user/article
+TeamWork is an essential **skill** for a whole team
