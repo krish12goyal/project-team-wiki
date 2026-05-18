@@ -184,6 +184,9 @@
   <script src="/js/api.js"></script>
   <script src="/js/dashboard.js"></script>
   <script>
+    // Configure marked: treat single newlines as <br> (line breaks)
+    marked.use({ breaks: true });
+
     let currentArticle = null;
     let articleId = null;
 
