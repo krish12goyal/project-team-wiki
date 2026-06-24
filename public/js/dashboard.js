@@ -130,6 +130,7 @@ function initDashboard() {
     if (!checkAuth()) return;
     
     // Any dashboard-specific initialization
+    initNotificationBell();
 }
 
 // Show toast notification
@@ -229,6 +230,162 @@ function getUserRoleForArticle(article, user) {
     return 'Viewer';
 }
 
+// ---------- Notification Bell ---------- //
+
+function initNotificationBell() {
+    // Only show if logged in
+    const token = WikiAPI.getToken();
+    if (!token) return;
+
+    // Prevent duplicate injection
+    if (document.getElementById('notif-container')) return;
+
+    // Inject bell HTML into the body
+    const bellHtml = `
+        <div class="notif-bell-container" id="notif-container">
+            <div class="notif-bell" id="notif-bell-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <div class="notif-badge" id="notif-badge">0</div>
+            </div>
+            
+            <div class="notif-panel" id="notif-panel">
+                <div class="notif-panel__header">
+                    <div class="notif-panel__title">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        Pending Invitations
+                    </div>
+                </div>
+                <div class="notif-panel__content" id="notif-content">
+                    <div class="notif-empty">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity: 0.5;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        No pending invitations
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    const headerRight = document.querySelector('.top-header__right');
+    if (headerRight) {
+        headerRight.insertAdjacentHTML('afterbegin', bellHtml);
+    } else {
+        document.body.insertAdjacentHTML('beforeend', bellHtml);
+    }
+
+    const bellBtn = document.getElementById('notif-bell-btn');
+    const panel = document.getElementById('notif-panel');
+
+    // Toggle panel
+    bellBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panel.classList.toggle('active');
+        if (panel.classList.contains('active')) {
+            fetchInvitations();
+        }
+    });
+
+    // Close panel on outside click
+    document.addEventListener('click', (e) => {
+        if (!panel.contains(e.target) && !bellBtn.contains(e.target)) {
+            panel.classList.remove('active');
+        }
+    });
+
+    // Initial fetch and poll every 30s
+    fetchInvitations();
+    setInterval(fetchInvitations, 30000);
+}
+
+async function fetchInvitations() {
+    try {
+        if (!WikiAPI.getMyInvitations) return;
+        const invites = await WikiAPI.getMyInvitations();
+        renderInvitations(invites);
+    } catch (err) {
+        console.error('Failed to fetch invitations:', err);
+    }
+}
+
+function renderInvitations(invites) {
+    const badge = document.getElementById('notif-badge');
+    const content = document.getElementById('notif-content');
+    
+    if (!badge || !content) return;
+
+    // Update Badge
+    if (invites.length > 0) {
+        badge.textContent = invites.length;
+        badge.classList.add('active');
+    } else {
+        badge.classList.remove('active');
+    }
+
+    // Update Panel Content
+    if (invites.length === 0) {
+        content.innerHTML = `
+            <div class="notif-empty">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity: 0.5;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                </svg>
+                No pending invitations
+            </div>
+        `;
+        return;
+    }
+
+    content.innerHTML = invites.map(inv => `
+        <div class="notif-card" id="invite-${inv._id}">
+            <div class="notif-card__title">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-primary-500">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                ${escapeHtml(inv.article?.title || 'Unknown Article')}
+            </div>
+            <div class="notif-card__text">
+                <strong>${escapeHtml(inv.fromUser?.username || 'Unknown')}</strong> invited you as 
+                <span class="badge ${inv.permission === 'editor' ? 'badge--editor' : 'badge--viewer'}">${inv.permission}</span>
+            </div>
+            <div class="notif-card__actions">
+                <button class="btn btn--secondary btn--sm" onclick="handleInvitation('${inv._id}', 'decline')" style="flex: 1;">Decline</button>
+                <button class="btn btn--primary btn--sm" onclick="handleInvitation('${inv._id}', 'accept')" style="flex: 1;">Accept</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+window.handleInvitation = async function(id, action) {
+    try {
+        const card = document.getElementById(`invite-${id}`);
+        if (card) {
+            const btns = card.querySelectorAll('button');
+            btns.forEach(b => { b.disabled = true; b.textContent = '...'; });
+        }
+
+        if (action === 'accept') {
+            await WikiAPI.acceptInvitation(id);
+            showToast('Invitation accepted!', 'success');
+            // If they are on dashboard/shared page, refresh the list if needed
+            if (window.loadArticles && (window.location.pathname.includes('dashboard') || window.location.pathname.includes('shared'))) {
+                window.loadArticles();
+            }
+        } else {
+            await WikiAPI.declineInvitation(id);
+            showToast('Invitation declined', 'info');
+        }
+
+        // Re-fetch remaining invites to update badge and panel
+        fetchInvitations();
+    } catch (err) {
+        showToast(err.message || 'Failed to process invitation', 'error');
+        fetchInvitations(); // Restore state
+    }
+};
+
 // Export functions globally
 window.initSidebar = initSidebar;
 window.initDashboard = initDashboard;
@@ -239,3 +396,4 @@ window.escapeHtml = escapeHtml;
 window.debounce = debounce;
 window.getRoleBadgeClass = getRoleBadgeClass;
 window.getUserRoleForArticle = getUserRoleForArticle;
+window.initNotificationBell = initNotificationBell;

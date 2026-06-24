@@ -16,6 +16,7 @@ const errorHandler = require('./server/middleware/errorHandler');
 const articleRoutes = require('./server/routes/articleRoutes');
 const authRoutes = require('./server/routes/authRoutes');
 const searchRoutes = require('./server/routes/searchRoutes');
+const invitationRoutes = require('./server/routes/invitationRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,7 @@ app.use((req, _res, next) => {
 app.use('/api/articles', articleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 // --------------- Static Files ---------------
 

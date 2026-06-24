@@ -142,7 +142,7 @@ async function getAllArticles(user, filters = {}) {
  * @returns {Promise<Object|null>}
  */
 async function getArticleById(id, user) {
-    const article = await Article.findById(id).lean();
+    const article = await Article.findById(id).populate('sharedWith.user', 'username email').lean();
     if (!article) return null;
 
     // Check permission
@@ -271,17 +271,18 @@ async function searchArticles(query, user) {
         return getAllArticles(user); // Reuse getAllArticles which has similar logic or just return proper list
     }
 
-    // Combine access check with text search
+    // Use regex for character-wise (partial) matching instead of $text (full words)
     const searchQuery = {
         ...baseQuery,
-        $text: { $search: query }
+        $or: [
+            { title: { $regex: query, $options: 'i' } },
+            { tags: { $regex: query, $options: 'i' } },
+            { content: { $regex: query, $options: 'i' } }
+        ]
     };
 
-    return Article.find(
-        searchQuery,
-        { score: { $meta: 'textScore' } }
-    )
-        .sort({ score: { $meta: 'textScore' } })
+    return Article.find(searchQuery)
+        .sort({ updatedAt: -1 })
         .lean();
 }
 

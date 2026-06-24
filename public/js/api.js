@@ -165,6 +165,35 @@ async function removeAccess(articleId, userId) {
     });
 }
 
+// ---------- Invitation API ----------
+
+async function createInvitation(articleId, usernameOrEmail, permission) {
+    return apiRequest(`/invitations`, {
+        method: 'POST',
+        body: JSON.stringify({ articleId, usernameOrEmail, permission }),
+    });
+}
+
+async function getMyInvitations() {
+    return apiRequest(`/invitations`);
+}
+
+async function getArticleInvitations(articleId) {
+    return apiRequest(`/invitations/article/${articleId}`);
+}
+
+async function acceptInvitation(id) {
+    return apiRequest(`/invitations/${id}/accept`, { method: 'PUT' });
+}
+
+async function declineInvitation(id) {
+    return apiRequest(`/invitations/${id}/decline`, { method: 'PUT' });
+}
+
+async function cancelInvitation(id) {
+    return apiRequest(`/invitations/${id}`, { method: 'DELETE' });
+}
+
 // ---------- Auth API ----------
 
 async function register(username, password, role, email) {
@@ -187,5 +216,6 @@ window.WikiAPI = {
     getArticles, getArticle, createArticle, updateArticle, deleteArticle,
     searchArticles, getArticleHistory, restoreArticle,
     shareArticle, removeAccess,
+    createInvitation, getMyInvitations, getArticleInvitations, acceptInvitation, declineInvitation, cancelInvitation,
     register, login,
 };
