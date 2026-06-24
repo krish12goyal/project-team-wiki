@@ -226,17 +226,19 @@
           return;
         }
 
-        renderHistory(history);
+        renderHistory(history, article);
       } catch (err) {
         showToast('Failed to load history', 'error');
         console.error(err);
       }
     }
 
-    function renderHistory(history) {
+    function renderHistory(history, article) {
       const timeline = document.getElementById('history-timeline');
-      const user = WikiAPI.getUser();
-      const canRestore = user?.role === 'editor' || user?.role === 'admin';
+      // Use the article's currentPermission (set by the server) to decide if restore is allowed.
+      // Owners and Editors can restore versions; Viewers cannot.
+      const perm = article?.currentPermission || '';
+      const canRestore = perm === 'owner' || perm === 'editor';
 
       timeline.innerHTML = history.map((entry, index) => `
         <div class="timeline__item">

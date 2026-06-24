@@ -3,263 +3,910 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Team Wiki - Collaborative documentation platform">
-  <title>Team Wiki</title>
+  <meta name="description" content="Team Wiki — Collaborative Documentation Platform with Git version control, full-text search, and role-based access for engineering teams.">
+  <title>Team Wiki | Collaborative Documentation Platform</title>
   <link rel="stylesheet" href="/css/modern-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
   <style>
-    .landing-hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: linear-gradient(135deg, var(--primary-50) 0%, var(--bg-secondary) 100%);
+    /* ── Landing-specific overrides using existing CSS variables ── */
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+      user-select: none;
     }
-    
-    .landing-nav {
+
+    /* ── TOP NAV ── */
+    .lp-nav {
+      background-color: var(--clay-bg-header);
+      border-bottom: var(--clay-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    }
+    .lp-nav__inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 40px;
+      gap: 32px;
     }
-    
-    .landing-nav__brand {
+    .lp-nav__brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-primary);
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: var(--primary-600);
       text-decoration: none;
     }
-    
-    .landing-nav__links {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    
-    .landing-hero__content {
-      flex: 1;
+    .lp-nav__brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px;
-      text-align: center;
+      color: white;
+      box-shadow: var(--clay-shadow-badge);
+      border: var(--clay-border-light);
     }
-    
-    .landing-hero__title {
-      font-size: 3.5rem;
+    .lp-nav__links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .lp-nav__search {
+      position: relative;
+      display: none;
+    }
+    @media (min-width: 640px) { .lp-nav__search { display: block; } }
+    .lp-nav__search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+    .lp-nav__search-input {
+      width: 260px;
+      padding: 9px 18px 9px 42px;
+      background-color: var(--clay-bg-input);
+      border: var(--clay-border-input);
+      border-radius: 50px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      box-shadow: var(--clay-shadow-input);
+      transition: all 0.2s ease;
+    }
+    .lp-nav__search-input:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: var(--clay-shadow-input), 0 0 0 3px var(--primary-100);
+    }
+
+    /* ── HERO ── */
+    .lp-hero {
+      background: linear-gradient(145deg, var(--primary-50) 0%, var(--bg-secondary) 55%, #e8ecf8 100%);
+      padding: 96px 40px 112px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .lp-hero::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, var(--primary-200) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .lp-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, var(--primary-100) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .lp-hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      background-color: var(--primary-100);
+      border: 1px solid var(--primary-200);
+      border-radius: 50px;
+      margin-bottom: 36px;
+      color: var(--primary-700);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: var(--clay-shadow-badge);
+    }
+    .lp-hero__title {
+      font-family: 'Manrope', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.25rem);
       font-weight: 800;
       color: var(--text-primary);
-      margin-bottom: 20px;
-      line-height: 1.2;
+      line-height: 1.1;
+      max-width: 860px;
+      margin: 0 auto 24px;
+      letter-spacing: -0.02em;
     }
-    
-    .landing-hero__title span {
+    .lp-hero__title em {
+      font-style: italic;
       background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    
-    .landing-hero__subtitle {
-      font-size: 1.25rem;
+    .lp-hero__subtitle {
+      font-size: 1.1875rem;
       color: var(--text-secondary);
-      margin-bottom: 40px;
       max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      line-height: 1.7;
+      margin: 0 auto 48px;
+      line-height: 1.75;
     }
-    
-    .landing-hero__actions {
+    .lp-hero__actions {
       display: flex;
+      flex-wrap: wrap;
       gap: 16px;
       justify-content: center;
-      flex-wrap: wrap;
     }
-    
-    .landing-features {
-      padding: 80px 40px;
-      background-color: var(--bg-primary);
-    }
-    
-    .landing-features__title {
-      text-align: center;
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 48px;
-    }
-    
-    .landing-features__grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 32px;
-      max-width: 1200px;
+
+    /* ── SECTION WRAPPER ── */
+    .lp-section {
+      max-width: 1280px;
       margin: 0 auto;
+      padding: 96px 40px;
     }
-    
-    .landing-feature {
-      text-align: center;
-      padding: 32px 24px;
+    .lp-section--alt {
+      background-color: var(--bg-primary);
+      border-top: var(--clay-border);
+      border-bottom: var(--clay-border);
+    }
+    .lp-section--alt .lp-section {
+      padding: 96px 40px;
+    }
+
+    /* ── SECTION HEADER ── */
+    .lp-section-header {
+      margin-bottom: 64px;
+    }
+    .lp-section-header--center { text-align: center; }
+    .lp-section-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+    .lp-section-subtitle {
+      font-size: 1.0625rem;
+      color: var(--text-muted);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+    .lp-section-header--center .lp-section-subtitle { margin: 0 auto; }
+
+    /* ── BENTO FEATURES GRID ── */
+    .lp-bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    @media (max-width: 1024px) { .lp-bento { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px)  { .lp-bento { grid-template-columns: 1fr; } }
+
+    .lp-feature-card {
       background-color: var(--clay-bg-card);
-      border-radius: var(--clay-radius-xl);
       border: var(--clay-border);
+      border-radius: var(--clay-radius-xl);
+      padding: 36px;
       box-shadow: var(--clay-shadow-card);
-      transition: transform var(--transition-base), box-shadow var(--transition-base);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
     }
-    
-    .landing-feature:hover {
-      transform: var(--clay-lift);
+    .lp-feature-card:hover {
+      transform: translateY(-5px);
       box-shadow: var(--clay-shadow-card-hover);
     }
-    
-    .landing-feature__icon {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
-      border-radius: var(--clay-radius-sm);
+    .lp-feature-card--featured {
+      grid-column: span 2;
+    }
+    @media (max-width: 1024px) { .lp-feature-card--featured { grid-column: span 2; } }
+    @media (max-width: 640px)  { .lp-feature-card--featured { grid-column: span 1; } }
+
+    .lp-feature-card__ghost {
+      position: absolute;
+      right: -12%;
+      bottom: -12%;
+      width: 55%;
+      height: 55%;
+      color: var(--primary-100);
+      pointer-events: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 2rem;
+      transition: opacity 0.3s;
+    }
+    .lp-feature-card:hover .lp-feature-card__ghost { opacity: 0.6; }
+    .lp-feature-card__ghost .material-symbols-outlined {
+      font-size: 160px;
+      color: var(--primary-200);
+    }
+
+    .lp-feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
       border: var(--clay-border-light);
       box-shadow: var(--clay-shadow-badge);
     }
-    
-    .landing-feature__title {
-      font-size: 1.25rem;
-      font-weight: 600;
+    .lp-feature-icon--primary   { background: linear-gradient(135deg, var(--primary-100), var(--primary-200)); color: var(--primary-700); }
+    .lp-feature-icon--success   { background: var(--success-light); color: var(--success); }
+    .lp-feature-icon--warning   { background: var(--warning-light); color: var(--warning); }
+    .lp-feature-icon--secondary { background: var(--primary-50); color: var(--primary-500); }
+
+    .lp-feature-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.375rem;
+      font-weight: 800;
       color: var(--text-primary);
       margin-bottom: 12px;
     }
-    
-    .landing-feature__desc {
+    .lp-feature-card--featured .lp-feature-title { font-size: 1.75rem; }
+
+    .lp-feature-desc {
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── ARCHITECTURE SECTION ── */
+    .lp-arch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    @media (max-width: 900px) { .lp-arch { grid-template-columns: 1fr; gap: 48px; } }
+
+    .lp-arch__steps { display: flex; flex-direction: column; gap: 36px; }
+    .lp-arch__step { display: flex; gap: 24px; align-items: flex-start; }
+    .lp-arch__step-num {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+      color: white;
+      font-weight: 800;
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: var(--clay-shadow-button-primary);
+      border: var(--clay-border-light);
+    }
+    .lp-arch__step-title {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: var(--primary-700);
+      margin-bottom: 8px;
+    }
+    .lp-arch__step-desc {
       color: var(--text-secondary);
       line-height: 1.7;
-    }
-    
-    .landing-footer {
-      background-color: var(--bg-secondary);
-      padding: 40px;
-      text-align: center;
-      border-top: var(--clay-border);
-    }
-    
-    .landing-footer__text {
-      color: var(--text-muted);
       font-size: 0.9375rem;
     }
-    
-    @media (max-width: 768px) {
-      .landing-hero__title {
-        font-size: 2.5rem;
-      }
-      
-      .landing-hero__subtitle {
-        font-size: 1.0625rem;
-      }
-      
-      .landing-nav {
-        padding: 16px 20px;
-      }
-      
-      .landing-hero__content {
-        padding: 20px;
-      }
+    .lp-arch__step-desc code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      background-color: var(--primary-50);
+      border: 1px solid var(--primary-200);
+      color: var(--primary-700);
+      padding: 1px 7px;
+      border-radius: 5px;
+    }
+
+    /* Code Block */
+    .lp-code-card {
+      background-color: var(--clay-bg-card);
+      border: var(--clay-border);
+      border-radius: var(--clay-radius-xl);
+      padding: 8px;
+      box-shadow: var(--clay-shadow-card);
+      position: relative;
+    }
+    .lp-code-inner {
+      background-color: var(--gray-800);
+      border-radius: 16px;
+      padding: 28px 32px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+      line-height: 1.8;
+      border: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .lp-code-dots { display: flex; gap: 8px; margin-bottom: 24px; }
+    .lp-code-dot {
+      width: 13px; height: 13px; border-radius: 50%;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .lp-code-dot--red    { background: var(--danger); }
+    .lp-code-dot--yellow { background: var(--warning); }
+    .lp-code-dot--green  { background: var(--success); }
+    .lp-code-comment { color: #64748b; }
+    .lp-code-keyword { color: #89ceff; }
+    .lp-code-fn      { color: #b4c5ff; }
+    .lp-code-string  { color: #c0c1ff; }
+    .lp-code-muted   { color: #475569; }
+    .lp-code-line    { display: flex; gap: 20px; }
+    .lp-code-num     { color: #334155; user-select: none; min-width: 16px; }
+
+    /* Ambient glow */
+    .lp-code-glow {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* ── CTA ── */
+    .lp-cta-card {
+      background: linear-gradient(135deg, var(--primary-50), var(--bg-secondary));
+      border: 1px solid var(--primary-200);
+      border-radius: 40px;
+      padding: 96px 40px;
+      text-align: center;
+      box-shadow: var(--clay-shadow-card);
+      position: relative;
+      overflow: hidden;
+    }
+    .lp-cta-card::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, var(--primary-200) 0%, transparent 70%);
+      border-radius: 50%;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .lp-cta-title {
+      font-family: 'Manrope', sans-serif;
+      font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.2;
+    }
+    .lp-cta-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.0625rem;
+      max-width: 480px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+    }
+    .lp-cta-actions { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+
+    /* ── FOOTER ── */
+    .lp-footer {
+      background-color: var(--clay-bg-sidebar);
+      border-top: var(--clay-border);
+      padding: 72px 40px 40px;
+    }
+    .lp-footer__inner {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .lp-footer__grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 56px;
+    }
+    @media (max-width: 768px) { .lp-footer__grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .lp-footer__grid { grid-template-columns: 1fr; } }
+
+    .lp-footer__brand { margin-bottom: 16px; }
+    .lp-footer__brand-name {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.375rem;
+      font-weight: 800;
+      color: var(--primary-600);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .lp-footer__desc {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      max-width: 300px;
+      margin-bottom: 24px;
+    }
+    .lp-footer__socials { display: flex; gap: 12px; }
+    .lp-footer__social-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background-color: var(--bg-secondary);
+      border: var(--clay-border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--clay-shadow-badge);
+    }
+    .lp-footer__social-btn:hover {
+      background-color: var(--primary-50);
+      color: var(--primary-600);
+      transform: translateY(-2px);
+      box-shadow: var(--clay-shadow-button-hover);
+    }
+    .lp-footer__col-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+    }
+    .lp-footer__links { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .lp-footer__links a {
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .lp-footer__links a:hover { color: var(--primary-600); }
+
+    .lp-footer__bottom {
+      padding-top: 32px;
+      border-top: var(--clay-border);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .lp-footer__copy {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+    .lp-footer__status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .lp-footer__license {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      opacity: 0.7;
+    }
+    .lp-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      background-color: var(--success-light);
+      border: 1px solid rgba(5, 150, 105, 0.25);
+      border-radius: 50px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .lp-status-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background-color: var(--success);
+      box-shadow: 0 0 6px rgba(5, 150, 105, 0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .lp-status-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--success);
+    }
+
+    /* ── SCROLL FADE-IN ── */
+    .lp-animate {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .lp-animate.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .lp-hero { padding: 64px 20px 80px; }
+      .lp-section { padding: 64px 20px; }
+      .lp-nav__inner { padding: 0 20px; }
+      .lp-footer { padding: 56px 20px 32px; }
+      .lp-cta-card { padding: 64px 24px; border-radius: 24px; }
     }
   </style>
 </head>
 <body>
-  <div class="landing-hero">
-    <!-- Navigation -->
-    <nav class="landing-nav">
-      <a href="/" class="landing-nav__brand">
-        <div class="sidebar__brand-icon" style="width: 40px; height: 40px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-        </div>
-        <span>Team Wiki</span>
-      </a>
-      <div class="landing-nav__links">
-        <a href="/login.html" class="btn btn--ghost">Sign In</a>
-        <a href="/register.html" class="btn btn--primary">Get Started</a>
-      </div>
-    </nav>
 
-    <!-- Hero Content -->
-    <div class="landing-hero__content">
-      <div>
-        <h1 class="landing-hero__title">
-          Collaborate with<br><span>Team Wiki</span>
-        </h1>
-        <p class="landing-hero__subtitle">
-          A modern, collaborative documentation platform for teams. 
-          Create, share, and manage your team's knowledge in one place.
-        </p>
-        <div class="landing-hero__actions">
-          <a href="/register.html" class="btn btn--primary btn--lg">Get Started Free</a>
+  <!-- ───────────── TOP NAVIGATION ───────────── -->
+  <header class="lp-nav">
+    <div class="lp-nav__inner">
+      <a href="/" class="lp-nav__brand">
+        <div class="lp-nav__brand-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1; font-size:22px; color:white;">account_tree</span>
+        </div>
+        Team Wiki
+      </a>
+
+      <div class="lp-nav__search">
+        <span class="material-symbols-outlined lp-nav__search-icon" style="font-size:18px;">search</span>
+        <input class="lp-nav__search-input" type="text" placeholder="Search documentation...">
+      </div>
+
+      <div class="lp-nav__links">
+        <a href="/login.html" class="btn btn--ghost btn--sm">Sign In</a>
+        <a href="/register.html" class="btn btn--primary btn--sm">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ───────────── HERO ───────────── -->
+  <section class="lp-hero">
+    <div class="lp-hero__badge lp-animate">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1; font-size:16px;">verified</span>
+      Production Ready v1.2.4
+    </div>
+
+    <h1 class="lp-hero__title lp-animate">
+      Think, plan, and track<br><em>all in one place</em>
+    </h1>
+
+    <p class="lp-hero__subtitle lp-animate">
+      Collaborative Documentation Platform — a full-stack solution featuring Git-based version control and high-performance search, built for engineering teams.
+    </p>
+
+    <div class="lp-hero__actions lp-animate">
+      <a href="/register.html" class="btn btn--primary btn--lg" style="gap:10px;">
+        Get Started Free
+        <span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span>
+      </a>
+      <a href="/login.html" class="btn btn--secondary btn--lg">
+        Sign In
+      </a>
+    </div>
+  </section>
+
+  <!-- ───────────── FEATURES BENTO GRID ───────────── -->
+  <div style="background-color: var(--bg-secondary);">
+    <div class="lp-section">
+      <div class="lp-section-header lp-animate">
+        <h2 class="lp-section-title">Powerful documentation for modern teams</h2>
+        <p class="lp-section-subtitle">Every tool you need to build a high-performance knowledge base — from markdown rendering to Git integration.</p>
+      </div>
+
+      <div class="lp-bento">
+
+        <!-- Featured: Git Version Control -->
+        <div class="lp-feature-card lp-feature-card--featured lp-animate">
+          <div class="lp-feature-icon lp-feature-icon--primary">
+            <span class="material-symbols-outlined" style="font-size:28px;">history</span>
+          </div>
+          <h3 class="lp-feature-title">Git Version Control</h3>
+          <p class="lp-feature-desc">Automatic commits on every change. View full document history and restore previous versions with a single click, powered by a robust backend Git CLI wrapper.</p>
+          <div class="lp-feature-card__ghost">
+            <span class="material-symbols-outlined">account_tree</span>
+          </div>
+        </div>
+
+        <!-- Full-Text Search -->
+        <div class="lp-feature-card lp-animate">
+          <div class="lp-feature-icon lp-feature-icon--secondary">
+            <span class="material-symbols-outlined" style="font-size:26px;">manage_search</span>
+          </div>
+          <h3 class="lp-feature-title">Full-Text Search</h3>
+          <p class="lp-feature-desc">MongoDB text index for ultra-fast search across titles, tags, and content bodies with near-instant results.</p>
+        </div>
+
+        <!-- Auto-Save -->
+        <div class="lp-feature-card lp-animate">
+          <div class="lp-feature-icon lp-feature-icon--success">
+            <span class="material-symbols-outlined" style="font-size:26px;">save</span>
+          </div>
+          <h3 class="lp-feature-title">Intelligent Auto-Save</h3>
+          <p class="lp-feature-desc">Editor saves every 10 seconds with a robust offline localStorage fallback to protect your work even without internet.</p>
+        </div>
+
+        <!-- Role-Based Access -->
+        <div class="lp-feature-card lp-animate">
+          <div class="lp-feature-icon lp-feature-icon--warning">
+            <span class="material-symbols-outlined" style="font-size:26px;">security</span>
+          </div>
+          <h3 class="lp-feature-title">Role-Based Access</h3>
+          <p class="lp-feature-desc">Granular permissions with JWT authentication. Roles include Viewer, Editor, and Owner with strict backend validation on every request.</p>
+        </div>
+
+        <!-- Markdown Native -->
+        <div class="lp-feature-card lp-animate">
+          <div class="lp-feature-icon lp-feature-icon--primary">
+            <span class="material-symbols-outlined" style="font-size:26px;">edit_note</span>
+          </div>
+          <h3 class="lp-feature-title">Markdown Native</h3>
+          <p class="lp-feature-desc">Live markdown preview with DOMPurify sanitization. XSS-safe rendering with a split-pane editor for developer-first editing.</p>
+        </div>
+
+        <!-- Team Collaboration -->
+        <div class="lp-feature-card lp-animate">
+          <div class="lp-feature-icon lp-feature-icon--success">
+            <span class="material-symbols-outlined" style="font-size:26px;">group</span>
+          </div>
+          <h3 class="lp-feature-title">Team Collaboration</h3>
+          <p class="lp-feature-desc">Share articles with teammates. Invite by email or username, manage pending invitations, and revoke access at any time.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────── ARCHITECTURE SECTION ───────────── -->
+  <div class="lp-section--alt">
+    <div class="lp-section">
+      <div class="lp-arch">
+        <!-- Left: Text -->
+        <div>
+          <div class="lp-section-header lp-animate" style="margin-bottom:48px;">
+            <h2 class="lp-section-title">System Architecture &amp; Core Logic</h2>
+            <p class="lp-section-subtitle">Built to solve complex synchronisation and concurrency problems at the backend level.</p>
+          </div>
+
+          <div class="lp-arch__steps">
+            <div class="lp-arch__step lp-animate">
+              <div class="lp-arch__step-num">01</div>
+              <div>
+                <div class="lp-arch__step-title">Tri-Layer Storage Architecture</div>
+                <p class="lp-arch__step-desc">Data writes are orchestrated across <strong>MongoDB → File System → Git Repository</strong> in strict order, ensuring consistency at every layer.</p>
+              </div>
+            </div>
+            <div class="lp-arch__step lp-animate">
+              <div class="lp-arch__step-num">02</div>
+              <div>
+                <div class="lp-arch__step-title">Promise-Based Git Mutex Queue</div>
+                <p class="lp-arch__step-desc">Forces async Git transactions into sequential promise chains. Prevents fatal <code>.git/index.lock</code> corruption under concurrent writes.</p>
+              </div>
+            </div>
+            <div class="lp-arch__step lp-animate">
+              <div class="lp-arch__step-num">03</div>
+              <div>
+                <div class="lp-arch__step-title">Synchronous Permission Funnel</div>
+                <p class="lp-arch__step-desc">Strict authorisation using hierarchical integer math to evaluate role levels and deflect malicious API manipulation at every endpoint.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Code Block -->
+        <div class="lp-animate">
+          <div class="lp-code-card">
+            <div class="lp-code-inner">
+              <div class="lp-code-dots">
+                <div class="lp-code-dot lp-code-dot--red"></div>
+                <div class="lp-code-dot lp-code-dot--yellow"></div>
+                <div class="lp-code-dot lp-code-dot--green"></div>
+              </div>
+              <div class="lp-code-comment">// Tri-Layer Write Logic</div>
+              <br>
+              <div class="lp-code-line">
+                <span class="lp-code-num">1</span>
+                <span><span class="lp-code-keyword">async</span> <span class="lp-code-keyword">function</span> <span class="lp-code-fn">saveArticle</span>(id, content) {</span>
+              </div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">2</span>
+                <span>&nbsp;&nbsp;<span class="lp-code-keyword">await</span> db.<span class="lp-code-fn">update</span>(id, content); <span class="lp-code-muted">// Layer 1: DB</span></span>
+              </div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">3</span>
+                <span>&nbsp;&nbsp;<span class="lp-code-keyword">await</span> fs.<span class="lp-code-fn">writeFile</span>(path, content); <span class="lp-code-muted">// Layer 2: FS</span></span>
+              </div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">4</span>
+                <span>&nbsp;&nbsp;<span class="lp-code-keyword">await</span> mutex.<span class="lp-code-fn">enqueue</span>(() =&gt; git.<span class="lp-code-fn">commit</span>()); <span class="lp-code-muted">// Layer 3</span></span>
+              </div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">5</span>
+                <span>}</span>
+              </div>
+              <br>
+              <div class="lp-code-comment">// Mutex prevents .git/index.lock corruption</div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">6</span>
+                <span><span class="lp-code-keyword">class</span> <span class="lp-code-fn">GitMutex</span> {</span>
+              </div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">7</span>
+                <span>&nbsp;&nbsp;<span class="lp-code-fn">lock</span>(cb) { <span class="lp-code-keyword">return</span> this.queue = this.queue.<span class="lp-code-fn">then</span>(cb); }</span>
+              </div>
+              <div class="lp-code-line">
+                <span class="lp-code-num">8</span>
+                <span>}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────── CTA ───────────── -->
+  <div style="background-color: var(--bg-secondary);">
+    <div class="lp-section">
+      <div class="lp-cta-card lp-animate">
+        <h2 class="lp-cta-title">Ready to streamline your team's knowledge?</h2>
+        <p class="lp-cta-subtitle">Join engineering teams building better software together with Team Wiki's robust, scalable infrastructure.</p>
+        <div class="lp-cta-actions">
+          <a href="/register.html" class="btn btn--primary btn--lg">Get Started for Free</a>
           <a href="/login.html" class="btn btn--secondary btn--lg">Sign In</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Features Section -->
-  <section class="landing-features">
-    <h2 class="landing-features__title">Everything you need</h2>
-    <div class="landing-features__grid">
-      <div class="landing-feature">
-        <div class="landing-feature__icon">📝</div>
-        <h3 class="landing-feature__title">Rich Text Editing</h3>
-        <p class="landing-feature__desc">Write with Markdown support. Format your content with headings, lists, code blocks, and more.</p>
+  <!-- ───────────── FOOTER ───────────── -->
+  <footer class="lp-footer">
+    <div class="lp-footer__inner">
+      <div class="lp-footer__grid">
+
+        <!-- Brand col -->
+        <div>
+          <div class="lp-footer__brand-name">
+            <div class="lp-nav__brand-icon" style="width:34px;height:34px;">
+              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1; font-size:20px; color:white;">account_tree</span>
+            </div>
+            Team Wiki
+          </div>
+          <p class="lp-footer__desc">High-performance collaborative documentation platform with engineering-first principles and Git-powered version control.</p>
+          <div class="lp-footer__socials">
+            <button class="lp-footer__social-btn" title="GitHub">
+              <span class="material-symbols-outlined" style="font-size:20px;">terminal</span>
+            </button>
+            <button class="lp-footer__social-btn" title="Docs">
+              <span class="material-symbols-outlined" style="font-size:20px;">public</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Platform col -->
+        <div>
+          <div class="lp-footer__col-title">Platform</div>
+          <ul class="lp-footer__links">
+            <li><a href="/dashboard.html">Article Management</a></li>
+            <li><a href="/search.html">Search Engine</a></li>
+            <li><a href="#">Version Control</a></li>
+            <li><a href="#">API Reference</a></li>
+          </ul>
+        </div>
+
+        <!-- Resources col -->
+        <div>
+          <div class="lp-footer__col-title">Resources</div>
+          <ul class="lp-footer__links">
+            <li><a href="#">Documentation</a></li>
+            <li><a href="#">Developer Blog</a></li>
+            <li><a href="#">Changelog</a></li>
+            <li><a href="#">Community</a></li>
+          </ul>
+        </div>
+
+        <!-- Legal col -->
+        <div>
+          <div class="lp-footer__col-title">Legal</div>
+          <ul class="lp-footer__links">
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Security Center</a></li>
+            <li><a href="#">Trust Center</a></li>
+          </ul>
+        </div>
+
       </div>
-      <div class="landing-feature">
-        <div class="landing-feature__icon">🤝</div>
-        <h3 class="landing-feature__title">Team Collaboration</h3>
-        <p class="landing-feature__desc">Share articles with your team. Assign viewer or editor permissions to control access.</p>
-      </div>
-      <div class="landing-feature">
-        <div class="landing-feature__icon">🕒</div>
-        <h3 class="landing-feature__title">Version History</h3>
-        <p class="landing-feature__desc">Track changes over time. Restore previous versions whenever you need them.</p>
-      </div>
-      <div class="landing-feature">
-        <div class="landing-feature__icon">🔍</div>
-        <h3 class="landing-feature__title">Powerful Search</h3>
-        <p class="landing-feature__desc">Find what you need instantly. Search across titles, content, and tags.</p>
-      </div>
-      <div class="landing-feature">
-        <div class="landing-feature__icon">💾</div>
-        <h3 class="landing-feature__title">Offline Support</h3>
-        <p class="landing-feature__desc">Keep working even without internet. Your drafts are saved locally and synced when online.</p>
-      </div>
-      <div class="landing-feature">
-        <div class="landing-feature__icon">🔒</div>
-        <h3 class="landing-feature__title">Secure & Private</h3>
-        <p class="landing-feature__desc">Your data is protected. Role-based access ensures the right people see the right content.</p>
+
+      <!-- Bottom bar -->
+      <div class="lp-footer__bottom">
+        <p class="lp-footer__copy">© 2026 Team Wiki Project. All rights reserved.</p>
+        <div class="lp-footer__status">
+          <span class="lp-footer__license">License: MIT</span>
+          <div class="lp-status-pill">
+            <div class="lp-status-dot"></div>
+            <span class="lp-status-text">Systems Nominal</span>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="landing-footer">
-    <p class="landing-footer__text">
-      © 2026 Team Wiki. Built for modern teams.
-    </p>
   </footer>
 
-  <!-- Scripts -->
+  <!-- ───────────── Scripts ───────────── -->
   <script src="/js/api.js"></script>
   <script>
-    // Check if already logged in
+    // Redirect if already logged in
     const user = WikiAPI.getUser();
-    if (user) {
+    if (user && WikiAPI.getToken()) {
       window.location.href = '/dashboard.html';
     }
+
+    // Scroll-triggered fade-in animation
+    document.addEventListener('DOMContentLoaded', () => {
+      const els = document.querySelectorAll('.lp-animate');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+      // Stagger cards in each grid row
+      document.querySelectorAll('.lp-bento .lp-feature-card').forEach((el, i) => {
+        el.style.transitionDelay = `${(i % 3) * 80}ms`;
+      });
+      document.querySelectorAll('.lp-arch__step').forEach((el, i) => {
+        el.style.transitionDelay = `${i * 100}ms`;
+      });
+
+      els.forEach(el => io.observe(el));
+    });
   </script>
 </body>
 </html>

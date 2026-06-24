@@ -43,7 +43,12 @@ function checkPermission(article, user, requiredRole) {
     }
 
     // 2. Check shared list
-    const shareEntry = article.sharedWith.find(s => s.user.toString() === userId);
+    // NOTE: s.user may be a raw ObjectId OR a populated object { _id, username, ... }
+    // depending on whether .populate() was called. We normalise both cases:
+    const shareEntry = article.sharedWith.find(s => {
+        const sharedUserId = s.user?._id ? s.user._id.toString() : s.user.toString();
+        return sharedUserId === userId;
+    });
 
     if (!shareEntry) {
         logger.warn(`Unauthorized access attempt blocked: User ${user.username} has no access to article ${article.slug}`);
