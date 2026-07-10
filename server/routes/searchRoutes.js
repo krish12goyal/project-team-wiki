@@ -1,17 +1,11 @@
-/**
- * Search Routes
- * Dedicated route for full-text article search.
- */
-
 const express = require('express');
 const articleController = require('../controllers/articleController');
-
 const { authenticate } = require('../middleware/authMiddleware');
+const { searchLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
-// GET /api/search?q=keyword
-router.get('/', authenticate, articleController.searchArticles);
+// GET /api/search?q=keyword (rate limited — prevents corpus scraping)
+router.get('/', authenticate, searchLimiter, articleController.searchArticles);
 
 module.exports = router;
-

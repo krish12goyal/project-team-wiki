@@ -261,28 +261,26 @@ async function deleteArticle(id, user) {
 async function searchArticles(query, user) {
     if (!user) return [];
 
-    const baseQuery = {
+    if (!query || !query.trim()) {
+        return getAllArticles(user); // Reuse getAllArticles which has similar logic or just return proper list
+    }
+
+    // Secure nested query structure to prevent query manipulation IDORs
+    const searchQuery = {
         $and: [
             {
                 $or: [
                     { owner: user.id },
                     { 'sharedWith.user': user.id }
                 ]
+            },
+            {
+                $or: [
+                    { title: { $regex: query, $options: 'i' } },
+                    { tags: { $regex: query, $options: 'i' } },
+                    { content: { $regex: query, $options: 'i' } }
+                ]
             }
-        ]
-    };
-
-    if (!query || !query.trim()) {
-        return getAllArticles(user); // Reuse getAllArticles which has similar logic or just return proper list
-    }
-
-    // Use regex for character-wise (partial) matching instead of $text (full words)
-    const searchQuery = {
-        ...baseQuery,
-        $or: [
-            { title: { $regex: query, $options: 'i' } },
-            { tags: { $regex: query, $options: 'i' } },
-            { content: { $regex: query, $options: 'i' } }
         ]
     };
 
@@ -320,7 +318,8 @@ async function restoreArticle(id, commitHash, user) {
     const article = await Article.findById(id).lean();
     if (!article) return null;
 
-    checkPermission(article, user, 'editor');
+    // Direct restore is restricted to owner only (editors must request permission)
+    checkPermission(article, user, 'owner');
 
     const filePath = `articles/${article.slug}.md`;
 

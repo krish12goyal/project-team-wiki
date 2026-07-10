@@ -55,17 +55,19 @@ async function apiRequest(endpoint, options = {}, _isRetry = false) {
     const response = await fetch(url, {
         ...options,
         headers,
+        credentials: 'same-origin', // Ensure HttpOnly cookies are transmitted
     });
 
     // If 401 and we haven't already retried, try to refresh the token
     if (response.status === 401 && !_isRetry && token) {
-        const refreshed = await _tryRefreshToken(token);
+        const refreshed = await _tryRefreshToken();
         if (refreshed) {
             // Retry the original request with the new token
             return apiRequest(endpoint, options, true);
         }
         // Refresh failed — redirect to login
         clearAuth();
+        localStorage.removeItem('wiki_user_name');
         window.location.href = '/login.html';
         throw new Error('Session expired. Redirecting to login...');
     }
@@ -80,18 +82,17 @@ async function apiRequest(endpoint, options = {}, _isRetry = false) {
 }
 
 /**
- * Attempt to refresh an expired JWT token.
- * @param {string} expiredToken - The expired token
+ * Attempt to refresh an expired JWT token using HttpOnly cookie rotation.
  * @returns {Promise<boolean>} true if refresh succeeded
  */
-async function _tryRefreshToken(expiredToken) {
+async function _tryRefreshToken() {
     try {
         const response = await fetch(`${API_BASE}/auth/refresh`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${expiredToken}`,
             },
+            credentials: 'same-origin', // Transmit the refreshToken cookie
         });
 
         if (!response.ok) return false;
@@ -210,6 +211,51 @@ async function login(username, password) {
     });
 }
 
+async function logout() {
+    try {
+        await apiRequest('/auth/logout', { method: 'POST' });
+    } catch (err) {
+        console.warn('[API] Logout request failed:', err.message);
+    }
+    clearAuth();
+    localStorage.removeItem('wiki_user_name');
+}
+
+async function forgotPassword(email) {
+    return apiRequest('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+    });
+}
+
+async function resetPassword(token, password) {
+    return apiRequest('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ token, password }),
+    });
+}
+
+// ---------- Restore Requests API ----------
+
+async function createRestoreRequest(articleId, commitHash) {
+    return apiRequest('/restore-requests', {
+        method: 'POST',
+        body: JSON.stringify({ articleId, commitHash }),
+    });
+}
+
+async function getMyRestoreRequests() {
+    return apiRequest('/restore-requests');
+}
+
+async function approveRestoreRequest(id) {
+    return apiRequest(`/restore-requests/${id}/approve`, { method: 'PUT' });
+}
+
+async function declineRestoreRequest(id) {
+    return apiRequest(`/restore-requests/${id}/decline`, { method: 'PUT' });
+}
+
 // Export to global scope for vanilla JS usage
 window.WikiAPI = {
     getToken, getUser, saveAuth, clearAuth,
@@ -217,5 +263,6 @@ window.WikiAPI = {
     searchArticles, getArticleHistory, restoreArticle,
     shareArticle, removeAccess,
     createInvitation, getMyInvitations, getArticleInvitations, acceptInvitation, declineInvitation, cancelInvitation,
-    register, login,
+    register, login, logout, forgotPassword, resetPassword,
+    createRestoreRequest, getMyRestoreRequests, approveRestoreRequest, declineRestoreRequest,
 };

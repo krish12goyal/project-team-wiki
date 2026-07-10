@@ -21,6 +21,21 @@ const invitationRoutes = require('./server/routes/invitationRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Enable trust proxy — set to 1 to trust only the immediate upstream reverse proxy.
+// Using `true` is permissive and allows X-Forwarded-For spoofing which bypasses rate limiting.
+// Set to 0 (false) if running without any reverse proxy (pure direct traffic).
+const trustProxyHops = process.env.NODE_ENV === 'production' ? 1 : 0;
+app.set('trust proxy', trustProxyHops);
+
+// Enforce HTTPS redirect in production
+app.use((req, res, next) => {
+    const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+    if (!isHttps && process.env.NODE_ENV === 'production') {
+        return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+});
+
 // Validate essential environment variables
 if (!process.env.MONGODB_URI || !process.env.JWT_SECRET) {
     logger.error('Missing required environment variables (MONGODB_URI, JWT_SECRET). Exiting.');
@@ -39,12 +54,18 @@ app.use((req, _res, next) => {
     next();
 });
 
-// --------------- API Routes (MUST come before static files) ---------------
+// --------------- Abuse Protection & Rate Limiting ---------------
+const { globalApiLimiter } = require('./server/middleware/rateLimiters');
 
+// --------------- API Routes (MUST come before static files) ---------------
+const restoreRequestRoutes = require('./server/routes/restoreRequestRoutes');
+
+app.use('/api', globalApiLimiter); // Broad safety net: 150 req / 15 min per IP
 app.use('/api/articles', articleRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/invitations', invitationRoutes);
+app.use('/api/restore-requests', restoreRequestRoutes);
 
 // --------------- Static Files ---------------
 
@@ -53,7 +74,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve specific HTML pages for frontend navigation
 const publicDir = path.join(__dirname, 'public');
-const htmlPages = ['editor', 'article', 'history', 'dashboard', 'login', 'register', 'create', 'my-articles', 'search', 'settings', 'shared'];
+const htmlPages = ['editor', 'article', 'history', 'dashboard', 'login', 'register', 'create', 'my-articles', 'search', 'settings', 'shared', 'forgot-password', 'reset-password'];
 htmlPages.forEach((page) => {
     app.get(`/${page}`, (_req, res) => {
         res.sendFile(path.join(publicDir, `${page}.html`));

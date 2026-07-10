@@ -6,11 +6,12 @@
 const express = require('express');
 const { authenticate } = require('../middleware/authMiddleware');
 const invitationController = require('../controllers/invitationController');
+const { invitationLimiter } = require('../middleware/rateLimiters');
 
 const router = express.Router();
 
-// POST   /api/invitations                          — Send an invitation (article owner)
-router.post('/', authenticate, invitationController.createInvitation);
+// POST   /api/invitations  — Send an invitation (rate limited — prevents bulk-invite spam)
+router.post('/', authenticate, invitationLimiter, invitationController.createInvitation);
 
 // GET    /api/invitations                          — Get pending invitations for me
 router.get('/', authenticate, invitationController.getMyInvitations);

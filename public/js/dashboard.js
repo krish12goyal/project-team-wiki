@@ -99,11 +99,10 @@ function initMobileDrawer() {
 function initLogout() {
     const logoutLink = document.getElementById('logout-link');
     if (logoutLink) {
-        logoutLink.addEventListener('click', (e) => {
+        logoutLink.addEventListener('click', async (e) => {
             e.preventDefault();
             if (confirm('Are you sure you want to logout?')) {
-                WikiAPI.clearAuth();
-                localStorage.removeItem('wiki_user_name');
+                await WikiAPI.logout();
                 window.location.href = '/login.html';
             }
         });
@@ -285,7 +284,7 @@ function initNotificationBell() {
         e.stopPropagation();
         panel.classList.toggle('active');
         if (panel.classList.contains('active')) {
-            fetchInvitations();
+            fetchNotifications();
         }
     });
 
@@ -297,48 +296,53 @@ function initNotificationBell() {
     });
 
     // Initial fetch and poll every 30s
-    fetchInvitations();
-    setInterval(fetchInvitations, 30000);
+    fetchNotifications();
+    setInterval(fetchNotifications, 30000);
 }
 
-async function fetchInvitations() {
+async function fetchNotifications() {
     try {
-        if (!WikiAPI.getMyInvitations) return;
-        const invites = await WikiAPI.getMyInvitations();
-        renderInvitations(invites);
+        if (!WikiAPI.getMyInvitations || !WikiAPI.getMyRestoreRequests) return;
+        const [invites, restoreReqs] = await Promise.all([
+            WikiAPI.getMyInvitations(),
+            WikiAPI.getMyRestoreRequests()
+        ]);
+        renderNotifications(invites, restoreReqs);
     } catch (err) {
-        console.error('Failed to fetch invitations:', err);
+        console.error('Failed to fetch notifications:', err);
     }
 }
 
-function renderInvitations(invites) {
+function renderNotifications(invites, restoreReqs) {
     const badge = document.getElementById('notif-badge');
     const content = document.getElementById('notif-content');
     
     if (!badge || !content) return;
 
+    const totalCount = invites.length + restoreReqs.length;
+
     // Update Badge
-    if (invites.length > 0) {
-        badge.textContent = invites.length;
+    if (totalCount > 0) {
+        badge.textContent = totalCount;
         badge.classList.add('active');
     } else {
         badge.classList.remove('active');
     }
 
     // Update Panel Content
-    if (invites.length === 0) {
+    if (totalCount === 0) {
         content.innerHTML = `
             <div class="notif-empty">
                 <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity: 0.5;">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                 </svg>
-                No pending invitations
+                No pending notifications
             </div>
         `;
         return;
     }
 
-    content.innerHTML = invites.map(inv => `
+    const invitesHtml = invites.map(inv => `
         <div class="notif-card" id="invite-${inv._id}">
             <div class="notif-card__title">
                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-primary-500">
@@ -356,6 +360,26 @@ function renderInvitations(invites) {
             </div>
         </div>
     `).join('');
+
+    const restoreReqsHtml = restoreReqs.map(req => `
+        <div class="notif-card" id="restore-req-${req._id}">
+            <div class="notif-card__title" style="color: var(--text-warning, #f59e0b);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Restore Request
+            </div>
+            <div class="notif-card__text">
+                <strong>${escapeHtml(req.editor?.username || 'Unknown')}</strong> requested to restore <strong>${escapeHtml(req.article?.title || 'Unknown Article')}</strong> to version <code>${escapeHtml(req.commitHash.substring(0, 7))}</code>.
+            </div>
+            <div class="notif-card__actions">
+                <button class="btn btn--secondary btn--sm" onclick="handleRestoreRequest('${req._id}', 'decline')" style="flex: 1;">Decline</button>
+                <button class="btn btn--primary btn--sm" onclick="handleRestoreRequest('${req._id}', 'accept')" style="flex: 1;">Allow</button>
+            </div>
+        </div>
+    `).join('');
+
+    content.innerHTML = invitesHtml + restoreReqsHtml;
 }
 
 window.handleInvitation = async function(id, action) {
@@ -369,7 +393,6 @@ window.handleInvitation = async function(id, action) {
         if (action === 'accept') {
             await WikiAPI.acceptInvitation(id);
             showToast('Invitation accepted!', 'success');
-            // If they are on dashboard/shared page, refresh the list if needed
             if (window.loadArticles && (window.location.pathname.includes('dashboard') || window.location.pathname.includes('shared'))) {
                 window.loadArticles();
             }
@@ -378,11 +401,33 @@ window.handleInvitation = async function(id, action) {
             showToast('Invitation declined', 'info');
         }
 
-        // Re-fetch remaining invites to update badge and panel
-        fetchInvitations();
+        fetchNotifications();
     } catch (err) {
         showToast(err.message || 'Failed to process invitation', 'error');
-        fetchInvitations(); // Restore state
+        fetchNotifications();
+    }
+};
+
+window.handleRestoreRequest = async function(id, action) {
+    try {
+        const card = document.getElementById(`restore-req-${id}`);
+        if (card) {
+            const btns = card.querySelectorAll('button');
+            btns.forEach(b => { b.disabled = true; b.textContent = '...'; });
+        }
+
+        if (action === 'accept') {
+            await WikiAPI.approveRestoreRequest(id);
+            showToast('Restore request approved and executed', 'success');
+        } else {
+            await WikiAPI.declineRestoreRequest(id);
+            showToast('Restore request declined', 'info');
+        }
+
+        fetchNotifications();
+    } catch (err) {
+        showToast(err.message || 'Failed to process restore request', 'error');
+        fetchNotifications();
     }
 };
 

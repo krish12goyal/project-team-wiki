@@ -167,10 +167,10 @@
   <div class="modal-overlay" id="restore-modal">
     <div class="modal" style="max-width: 400px;">
       <div class="modal__header">
-        <h3 class="modal__title">Restore Version</h3>
+        <h3 class="modal__title" id="modal-title-text">Restore Version</h3>
       </div>
       <div class="modal__body">
-        <p>Are you sure you want to restore this version? The current version will be replaced.</p>
+        <p id="modal-body-text">Are you sure you want to restore this version? The current version will be replaced.</p>
       </div>
       <div class="modal__footer">
         <button class="btn btn--secondary" onclick="closeRestoreModal()">Cancel</button>
@@ -235,10 +235,9 @@
 
     function renderHistory(history, article) {
       const timeline = document.getElementById('history-timeline');
-      // Use the article's currentPermission (set by the server) to decide if restore is allowed.
-      // Owners and Editors can restore versions; Viewers cannot.
       const perm = article?.currentPermission || '';
-      const canRestore = perm === 'owner' || perm === 'editor';
+      const isOwner = perm === 'owner';
+      const isEditor = perm === 'editor';
 
       timeline.innerHTML = history.map((entry, index) => `
         <div class="timeline__item">
@@ -251,21 +250,43 @@
             ${escapeHtml(entry.author || 'Unknown')}
             ${entry.hash ? `<span style="margin-left: 8px; font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">(${entry.hash.substring(0, 7)})</span>` : ''}
           </div>
-          ${canRestore && index > 0 ? `
-            <button class="btn btn--secondary btn--sm mt-2" onclick="openRestoreModal('${entry.hash}')">
+          ${isOwner && index > 0 ? `
+            <button class="btn btn--secondary btn--sm mt-2" onclick="openRestoreModal('${entry.hash}', false)">
               <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
               </svg>
               Restore this version
             </button>
           ` : ''}
+          ${isEditor && index > 0 ? `
+            <button class="btn btn--secondary btn--sm mt-2" onclick="openRestoreModal('${entry.hash}', true)">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 4px;">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+              Request Restore
+            </button>
+          ` : ''}
         </div>
       `).join('');
     }
 
+    let isRequestMode = false;
+
     // Restore modal functions
-    window.openRestoreModal = function (hash) {
+    window.openRestoreModal = function (hash, requestMode = false) {
       restoreHash = hash;
+      isRequestMode = requestMode;
+
+      if (isRequestMode) {
+        document.getElementById('modal-title-text').textContent = 'Request Restore';
+        document.getElementById('modal-body-text').textContent = 'Are you sure you want to request the owner to restore this version?';
+        document.getElementById('confirm-restore-btn').textContent = 'Send Request';
+      } else {
+        document.getElementById('modal-title-text').textContent = 'Restore Version';
+        document.getElementById('modal-body-text').textContent = 'Are you sure you want to restore this version? The current version will be replaced.';
+        document.getElementById('confirm-restore-btn').textContent = 'Restore';
+      }
+
       document.getElementById('restore-modal').classList.add('active');
     };
 
@@ -278,8 +299,13 @@
       if (!restoreHash) return;
 
       try {
-        await WikiAPI.restoreArticle(articleId, restoreHash);
-        showToast('Article restored successfully', 'success');
+        if (isRequestMode) {
+          await WikiAPI.createRestoreRequest(articleId, restoreHash);
+          showToast('Restore request sent to the owner', 'success');
+        } else {
+          await WikiAPI.restoreArticle(articleId, restoreHash);
+          showToast('Article restored successfully', 'success');
+        }
         closeRestoreModal();
 
         // Reload history
@@ -287,7 +313,7 @@
           loadHistory();
         }, 500);
       } catch (err) {
-        showToast(err.message || 'Failed to restore version', 'error');
+        showToast(err.message || 'Operation failed', 'error');
       }
     });
 

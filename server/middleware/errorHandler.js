@@ -6,11 +6,13 @@
 const logger = require('../utils/logger');
 
 function errorHandler(err, req, res, _next) {
-    // Log the full error
+    // Log the full error with IP and authenticated user context
     logger.error(`${err.message}`, {
         stack: err.stack,
         path: req.originalUrl,
         method: req.method,
+        ip: req.ip,
+        userId: req.user?.id || 'unauthenticated',
     });
 
     // Mongoose validation error
